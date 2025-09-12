@@ -1,31 +1,32 @@
 {
   "routes": [
-     
-      "route": "/api/*",
+    {
+      "route": "/*",
       "serve": "/index.html",
+      "statusCode": 200
     }
-  "na
-    "exclude": ["/im
-  "mimeTypes": {
-    ".js": "text/javasc
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/images/*.{png,jpg,gif,ico,svg}", "/assets/*", "*.json"]
   },
-    
-  "responseOverrides": {
-      "redirect": "/login",
-    }
-}
   "mimeTypes": {
     ".json": "application/json",
     ".js": "text/javascript",
-    ".css": "text/css"
+    ".css": "text/css",
+    ".tsx": "text/typescript",
+    ".ts": "text/typescript"
   },
   "globalHeaders": {
-    "Cache-Control": "no-cache"
+    "Cache-Control": "no-cache",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block"
   },
   "responseOverrides": {
-    "401": {
-      "redirect": "/login",
-      "statusCode": 302
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 200
     }
   }
 }

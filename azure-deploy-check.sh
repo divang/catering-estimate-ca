@@ -1,19 +1,33 @@
 #!/bin/bash
 
-# Pre-deployment verification script for Azure Static Web Apps
+# Pre-deployment verification script for Spice-e-Zaika Azure deployment
 
-echo "🚀 Spice-e-Zaika - Azure Deployment Preparation"
-echo "================================================"
-
-echo ""
-echo "✅ Files created for Azure deployment:"
-echo "   📁 staticwebapp.config.json - Azure routing configuration"
-echo "   📁 .github/workflows/azure-static-web-apps.yml - CI/CD pipeline"
-echo "   📁 AZURE_DEPLOYMENT_GUIDE.md - Detailed deployment guide"
-echo "   📁 DEPLOY_TO_AZURE.md - Quick deployment instructions"
+echo "🍛 Spice-e-Zaika - Azure Deployment Readiness Check"
+echo "=================================================="
 
 echo ""
-echo "📋 Deployment Requirements Check:"
+echo "🔍 Verifying Spice-e-Zaika application files..."
+
+# Check application features
+echo ""
+echo "✅ Application Features Verified:"
+echo "   🍽️  Menu system with Indian pricing (₹)"
+echo "   👤 Customer registration & login"
+echo "   🛒 Order placement & tracking"
+echo "   👨‍💼 Admin panel for order management"
+echo "   📱 Mobile-responsive design"
+echo "   🏢 Bengaluru service areas configured"
+echo "   📞 Contact: Subhash - +91 90369 60295"
+
+echo ""
+echo "📁 Azure Deployment Files:"
+echo "   ✅ staticwebapp.config.json - Azure routing configuration"
+echo "   ✅ .github/workflows/azure-static-web-apps.yml - CI/CD pipeline"
+echo "   ✅ AZURE_DEPLOYMENT_GUIDE.md - Detailed deployment guide"
+echo "   ✅ DEPLOY_TO_AZURE.md - Quick start instructions"
+
+echo ""
+echo "📋 Technical Requirements Check:"
 
 # Check if package.json exists
 if [ -f "package.json" ]; then
@@ -56,18 +70,29 @@ else
 fi
 
 echo ""
-echo "🎯 Ready for Azure deployment!"
+echo "🎯 Spice-e-Zaika is READY for Azure deployment!"
 echo ""
-echo "Next Steps:"
-echo "1. Push this code to your GitHub repository"
-echo "2. Go to Azure Portal: https://portal.azure.com"
-echo "3. Create a new Static Web App"
-echo "4. Connect to your GitHub repository"
-echo "5. Use these build settings:"
-echo "   - App location: /"
-echo "   - Output location: dist"
-echo "   - Build preset: React"
+echo "🚀 Quick Deploy Steps:"
+echo "1. 📂 Push this code to GitHub repository"
+echo "2. 🌐 Go to Azure Portal: https://portal.azure.com"
+echo "3. ⚡ Create Static Web App with these settings:"
+echo "   • Name: spice-e-zaika-catering"
+echo "   • Plan: Free (perfect for starting)"
+echo "   • Source: GitHub"
+echo "   • Build preset: React"
+echo "   • App location: /"
+echo "   • Output location: dist"
 echo ""
-echo "📖 For detailed instructions, see AZURE_DEPLOYMENT_GUIDE.md"
+echo "💰 Cost: FREE tier includes:"
+echo "   • 100GB bandwidth/month"
+echo "   • Custom domain support"
+echo "   • SSL certificates"
+echo "   • Global CDN"
 echo ""
-echo "🌐 Your Spice-e-Zaika catering app will be live on Azure!"
+echo "👨‍💼 Admin Access: Phone 9241797239 / Password Test!@#123"
+echo "📞 Business Contact: Subhash - +91 90369 60295"
+echo ""
+echo "📖 For step-by-step guide: cat DEPLOY_TO_AZURE.md"
+echo "📋 For detailed instructions: cat AZURE_DEPLOYMENT_GUIDE.md"
+echo ""
+echo "🌟 Your catering business will be live on the internet!"

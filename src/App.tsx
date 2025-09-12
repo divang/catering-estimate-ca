@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Users, Plus, Minus, Receipt, Download, MapPin } from '@phosphor-icons/react'
+import { Users, Plus, Minus, Receipt, Download, MapPin, Phone, User } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 interface FoodItem {
@@ -473,6 +473,40 @@ function App() {
                     </Dialog>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User size={20} />
+                  Contact Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                        <Phone size={18} className="text-primary" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Subhash</p>
+                      <p className="text-sm text-muted-foreground mb-1">Catering Manager</p>
+                      <a 
+                        href="tel:+919036960295" 
+                        className="text-primary font-medium hover:underline flex items-center gap-1"
+                      >
+                        <Phone size={14} />
+                        +91 90369 60295
+                      </a>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Call for custom requirements, bulk orders, or special dietary needs
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>

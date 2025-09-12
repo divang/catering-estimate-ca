@@ -35,6 +35,14 @@ interface CustomerDetails {
   eventTime: string
 }
 
+interface UserRegistration {
+  name: string
+  phone: string
+  email: string
+  address: string
+  isRegistered: boolean
+}
+
 interface Order {
   id: string
   orderDate: string
@@ -124,10 +132,18 @@ function App() {
   const [selectedArea, setSelectedArea] = useKV<string>("selected-area", "")
   const [orders, setOrders] = useKV<Order[]>("customer-orders", [])
   const [adminAuth, setAdminAuth] = useKV<AdminAuth>("admin-auth", { isLoggedIn: false })
+  const [userRegistration, setUserRegistration] = useKV<UserRegistration>("user-registration", {
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    isRegistered: false
+  })
   const [activeCategory, setActiveCategory] = useState('appetizers')
   const [showOrderForm, setShowOrderForm] = useState(false)
   const [showAdminLogin, setShowAdminLogin] = useState(false)
   const [showAdminPanel, setShowAdminPanel] = useState(false)
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false)
   const [adminCredentials, setAdminCredentials] = useState({ email: '', password: '' })
   const [customerDetails, setCustomerDetails] = useState<CustomerDetails>({
     name: '',
@@ -137,9 +153,17 @@ function App() {
     eventDate: '',
     eventTime: ''
   })
+  const [registrationData, setRegistrationData] = useState<UserRegistration>({
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    isRegistered: false
+  })
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
+  const [isSubmittingRegistration, setIsSubmittingRegistration] = useState(false)
 
-  // Check admin session on load
+  // Check admin session on load and populate customer details from registration
   useEffect(() => {
     if (adminAuth.isLoggedIn && adminAuth.sessionExpiry) {
       if (Date.now() > adminAuth.sessionExpiry) {
@@ -147,7 +171,18 @@ function App() {
         toast.info("Admin session expired. Please log in again.")
       }
     }
-  }, [adminAuth, setAdminAuth])
+    
+    // Pre-populate customer details if user is registered
+    if (userRegistration.isRegistered) {
+      setCustomerDetails(prev => ({
+        ...prev,
+        name: userRegistration.name,
+        phone: userRegistration.phone,
+        email: userRegistration.email,
+        address: userRegistration.address
+      }))
+    }
+  }, [adminAuth, setAdminAuth, userRegistration])
 
   const handlePartySizeChange = (value: string) => {
     const size = parseInt(value) || 0
@@ -216,11 +251,78 @@ function App() {
     return item.pricePerPerson * partySize * item.quantity
   }
 
+  const handleRegistrationChange = (field: keyof UserRegistration, value: string) => {
+    setRegistrationData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const isRegistrationFormValid = () => {
+    return registrationData.name.trim() !== '' &&
+           registrationData.phone.trim() !== '' &&
+           registrationData.address.trim() !== ''
+  }
+
+  const handleUserRegistration = async () => {
+    if (!isRegistrationFormValid()) {
+      toast.error("Please fill all required fields")
+      return
+    }
+
+    setIsSubmittingRegistration(true)
+    
+    try {
+      const registeredUser = {
+        ...registrationData,
+        isRegistered: true
+      }
+      
+      setUserRegistration(registeredUser)
+      
+      // Pre-populate customer details
+      setCustomerDetails(prev => ({
+        ...prev,
+        name: registeredUser.name,
+        phone: registeredUser.phone,
+        email: registeredUser.email,
+        address: registeredUser.address
+      }))
+      
+      setShowRegistrationForm(false)
+      setShowOrderForm(true)
+      
+      toast.success("Registration successful!", {
+        description: "You can now place your order"
+      })
+      
+    } catch (error) {
+      toast.error("Registration failed. Please try again.")
+      console.error("Registration error:", error)
+    } finally {
+      setIsSubmittingRegistration(false)
+    }
+  }
+
+  const handleLogout = () => {
+    setUserRegistration({
+      name: '',
+      phone: '',
+      email: '',
+      address: '',
+      isRegistered: false
+    })
+    setCustomerDetails({
+      name: '',
+      phone: '',
+      email: '',
+      address: '',
+      eventDate: '',
+      eventTime: ''
+    })
+    toast.success("Logged out successfully")
+  }
+
   const handleCustomerDetailsChange = (field: keyof CustomerDetails, value: string) => {
     setCustomerDetails(prev => ({ ...prev, [field]: value }))
   }
-
-  const isCustomerFormValid = () => {
     const isBasicInfoValid = customerDetails.name.trim() !== '' &&
            customerDetails.phone.trim() !== '' &&
            customerDetails.address.trim() !== '' &&
@@ -356,6 +458,34 @@ function App() {
           </p>
           
           <div className="mt-6 flex gap-4 justify-center">
+            {userRegistration.isRegistered ? (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 px-4 py-2 bg-accent/10 rounded-lg">
+                  <User size={16} className="text-accent" />
+                  <span className="text-sm text-accent font-medium">
+                    Welcome, {userRegistration.name}
+                  </span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleLogout}
+                  className="flex items-center gap-2"
+                >
+                  <User size={14} />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                variant="outline" 
+                onClick={() => setShowRegistrationForm(true)}
+                className="flex items-center gap-2"
+              >
+                <User size={16} />
+                Register / Login
+              </Button>
+            )}
             <Button 
               variant="outline" 
               onClick={() => setShowAdminLogin(true)}
@@ -623,12 +753,23 @@ function App() {
                     
                     <Dialog open={showOrderForm} onOpenChange={setShowOrderForm}>
                       <DialogTrigger asChild>
-                        <Button className="w-full" disabled={!isValidOrder}>
+                        <Button 
+                          className="w-full" 
+                          disabled={!isValidOrder}
+                          onClick={() => {
+                            if (!userRegistration.isRegistered && isValidOrder) {
+                              setShowRegistrationForm(true)
+                              return
+                            }
+                          }}
+                        >
                           <ClipboardText size={16} className="mr-2" />
                           {!isValidOrder && partySize === 0 
                             ? 'Set Party Size to Continue'
                             : !isValidOrder && selectedItems.length === 0
                             ? 'Add Items to Continue'
+                            : !userRegistration.isRegistered
+                            ? 'Register & Place Order'
                             : 'Place Order'
                           }
                         </Button>
@@ -642,7 +783,12 @@ function App() {
                           <Card>
                             <CardHeader>
                               <CardTitle className="text-lg">Customer Information</CardTitle>
-                              <CardDescription>Please provide your details for order confirmation</CardDescription>
+                              <CardDescription>
+                                {userRegistration.isRegistered 
+                                  ? "Your registered information is pre-filled below"
+                                  : "Please provide your details for order confirmation"
+                                }
+                              </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -657,8 +803,14 @@ function App() {
                                     onChange={(e) => handleCustomerDetailsChange('name', e.target.value)}
                                     placeholder="Enter your full name"
                                     className="mt-1"
+                                    disabled={userRegistration.isRegistered}
                                     required
                                   />
+                                  {userRegistration.isRegistered && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      From your registration
+                                    </p>
+                                  )}
                                 </div>
                                 <div>
                                   <Label htmlFor="customer-phone" className="text-sm font-medium">
@@ -671,8 +823,14 @@ function App() {
                                     onChange={(e) => handleCustomerDetailsChange('phone', e.target.value)}
                                     placeholder="Enter 10-digit mobile number"
                                     className="mt-1"
+                                    disabled={userRegistration.isRegistered}
                                     required
                                   />
+                                  {userRegistration.isRegistered && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      From your registration
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                               
@@ -687,7 +845,13 @@ function App() {
                                   onChange={(e) => handleCustomerDetailsChange('email', e.target.value)}
                                   placeholder="Enter your email address"
                                   className="mt-1"
+                                  disabled={userRegistration.isRegistered}
                                 />
+                                {userRegistration.isRegistered && (
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    From your registration
+                                  </p>
+                                )}
                               </div>
                               
                               <div>
@@ -700,8 +864,14 @@ function App() {
                                   onChange={(e) => handleCustomerDetailsChange('address', e.target.value)}
                                   placeholder="Enter complete delivery address with landmark"
                                   className="mt-1 min-h-[80px]"
+                                  disabled={userRegistration.isRegistered}
                                   required
                                 />
+                                {userRegistration.isRegistered && (
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    From your registration
+                                  </p>
+                                )}
                               </div>
                               
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -954,6 +1124,99 @@ function App() {
             </Card>
           </div>
         </div>
+
+        {/* User Registration Dialog */}
+        <Dialog open={showRegistrationForm} onOpenChange={setShowRegistrationForm}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <User size={20} />
+                Register to Place Order
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="reg-name">Full Name *</Label>
+                <Input
+                  id="reg-name"
+                  type="text"
+                  value={registrationData.name}
+                  onChange={(e) => handleRegistrationChange('name', e.target.value)}
+                  placeholder="Enter your full name"
+                  className="mt-1"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="reg-phone">Phone Number *</Label>
+                <Input
+                  id="reg-phone"
+                  type="tel"
+                  value={registrationData.phone}
+                  onChange={(e) => handleRegistrationChange('phone', e.target.value)}
+                  placeholder="Enter 10-digit mobile number"
+                  className="mt-1"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="reg-email">Email Address (Optional)</Label>
+                <Input
+                  id="reg-email"
+                  type="email"
+                  value={registrationData.email}
+                  onChange={(e) => handleRegistrationChange('email', e.target.value)}
+                  placeholder="Enter your email address"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="reg-address">Complete Address *</Label>
+                <Textarea
+                  id="reg-address"
+                  value={registrationData.address}
+                  onChange={(e) => handleRegistrationChange('address', e.target.value)}
+                  placeholder="Enter complete address with landmark"
+                  className="mt-1 min-h-[80px]"
+                  required
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowRegistrationForm(false)}
+                  className="flex-1"
+                  disabled={isSubmittingRegistration}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleUserRegistration}
+                  className="flex-1"
+                  disabled={!isRegistrationFormValid() || isSubmittingRegistration}
+                >
+                  {isSubmittingRegistration ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                      Registering...
+                    </>
+                  ) : (
+                    <>
+                      <User size={16} className="mr-2" />
+                      Register & Continue
+                    </>
+                  )}
+                </Button>
+              </div>
+              <div className="bg-muted rounded-lg p-3">
+                <p className="text-sm text-muted-foreground">
+                  <strong>Why register?</strong> Your information will be saved for future orders, 
+                  making the booking process faster and easier.
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Admin Login Dialog */}
         <Dialog open={showAdminLogin} onOpenChange={setShowAdminLogin}>

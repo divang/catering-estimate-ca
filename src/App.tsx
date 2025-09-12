@@ -634,7 +634,7 @@ function App() {
                   </TabsList>
 
                   {FOOD_CATEGORIES.map((category) => (
-                    <TabsContent key={category.id} value={category.id} className="mt-12">
+                    <TabsContent key={category.id} value={category.id} className="mt-24">
                       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                         {filteredItems.map((item) => {
                           const selectedItem = selectedItems.find(s => s.id === item.id)

@@ -45,34 +45,39 @@ const FOOD_CATEGORIES = [
 
 const MENU_ITEMS: FoodItem[] = [
   // Appetizers
-  { id: 'bruschetta', name: 'Bruschetta Platter', description: 'Fresh tomatoes, basil, and mozzarella on toasted bread', pricePerPerson: 350, category: 'appetizers' },
-  { id: 'shrimp-cocktail', name: 'Shrimp Cocktail', description: 'Jumbo shrimp with cocktail sauce', pricePerPerson: 680, category: 'appetizers' },
-  { id: 'cheese-board', name: 'Artisan Cheese Board', description: 'Selection of fine cheeses with crackers and fruits', pricePerPerson: 485, category: 'appetizers' },
-  { id: 'stuffed-mushrooms', name: 'Stuffed Mushrooms', description: 'Button mushrooms stuffed with herbs and breadcrumbs', pricePerPerson: 425, category: 'appetizers' },
+  { id: 'spring-roll', name: 'Spring Roll', description: 'Crispy spring rolls filled with vegetables and served hot', pricePerPerson: 45, category: 'appetizers' },
+  { id: 'samosa', name: 'Samosa', description: 'Golden fried samosas stuffed with spiced potatoes and peas', pricePerPerson: 35, category: 'appetizers' },
+  { id: 'pakoda', name: 'Mixed Pakoda', description: 'Assorted vegetable fritters with mint and tamarind chutney', pricePerPerson: 40, category: 'appetizers' },
+  { id: 'french-fries', name: 'French Fries', description: 'Crispy golden fries seasoned with herbs and spices', pricePerPerson: 50, category: 'appetizers' },
+  { id: 'pani-puri', name: 'Pani Puri', description: 'Traditional street food with spiced water and chutneys', pricePerPerson: 30, category: 'appetizers', minimumOrder: 20 },
+  { id: 'dahi-kabab', name: 'Dahi Kabab', description: 'Soft yogurt kebabs with aromatic spices and herbs', pricePerPerson: 55, category: 'appetizers' },
 
-  // Mains
-  { id: 'grilled-chicken', name: 'Grilled Chicken Breast', description: 'Herb-marinated chicken with lemon pepper seasoning', pricePerPerson: 1400, category: 'mains' },
-  { id: 'beef-tenderloin', name: 'Beef Tenderloin', description: 'Premium cut beef with red wine reduction', pricePerPerson: 2500, category: 'mains' },
-  { id: 'salmon-fillet', name: 'Atlantic Salmon', description: 'Fresh salmon with dill and citrus glaze', pricePerPerson: 1900, category: 'mains' },
-  { id: 'vegetarian-pasta', name: 'Vegetarian Pasta Primavera', description: 'Seasonal vegetables with penne pasta', pricePerPerson: 1150, category: 'mains' },
+  // Main Courses
+  { id: 'paneer-curry', name: 'Paneer Curry', description: 'Rich and creamy paneer curry with aromatic spices', pricePerPerson: 120, category: 'mains' },
+  { id: 'chole', name: 'Chole (Chickpea Curry)', description: 'Spicy chickpea curry cooked with onions and tomatoes', pricePerPerson: 95, category: 'mains' },
+  { id: 'dal-makhani', name: 'Dal Makhani', description: 'Creamy black lentils slow-cooked with butter and spices', pricePerPerson: 85, category: 'mains' },
+  { id: 'dal-tadka', name: 'Dal Tadka', description: 'Yellow lentils tempered with cumin, garlic and spices', pricePerPerson: 70, category: 'mains' },
+  { id: 'roti', name: 'Roti', description: 'Fresh whole wheat flatbread cooked on tawa', pricePerPerson: 15, category: 'mains' },
+  { id: 'paratha', name: 'Paratha', description: 'Layered flatbread cooked with ghee, soft and flaky', pricePerPerson: 25, category: 'mains' },
+  { id: 'puri', name: 'Puri', description: 'Deep-fried puffed bread, crispy and light', pricePerPerson: 20, category: 'mains' },
+  { id: 'bhatura', name: 'Bhatura', description: 'Fluffy deep-fried bread perfect with chole', pricePerPerson: 30, category: 'mains' },
 
-  // Sides
-  { id: 'roasted-vegetables', name: 'Roasted Seasonal Vegetables', description: 'Chef\'s selection of fresh vegetables', pricePerPerson: 565, category: 'sides' },
-  { id: 'garlic-mashed-potatoes', name: 'Garlic Mashed Potatoes', description: 'Creamy potatoes with roasted garlic', pricePerPerson: 445, category: 'sides' },
-  { id: 'wild-rice-pilaf', name: 'Wild Rice Pilaf', description: 'Aromatic rice with herbs and almonds', pricePerPerson: 505, category: 'sides' },
-  { id: 'caesar-salad', name: 'Caesar Salad', description: 'Romaine lettuce with house-made dressing', pricePerPerson: 620, category: 'sides' },
+  // Side Dishes
+  { id: 'mixed-salad', name: 'Mixed Salad', description: 'Fresh cucumber, tomato, onion and carrot salad', pricePerPerson: 35, category: 'sides' },
+  { id: 'pickles', name: 'Indian Pickles', description: 'Assorted traditional pickles - mango, lime and mixed vegetable', pricePerPerson: 20, category: 'sides' },
+  { id: 'raita', name: 'Mixed Raita', description: 'Cooling yogurt with cucumber, onion and mint', pricePerPerson: 40, category: 'sides' },
+  { id: 'papad', name: 'Roasted Papad', description: 'Crispy lentil wafers roasted to perfection', pricePerPerson: 15, category: 'sides' },
 
   // Desserts
-  { id: 'chocolate-mousse', name: 'Chocolate Mousse', description: 'Rich Belgian chocolate mousse with berries', pricePerPerson: 740, category: 'desserts' },
-  { id: 'tiramisu', name: 'Classic Tiramisu', description: 'Traditional Italian dessert with coffee and mascarpone', pricePerPerson: 680, category: 'desserts' },
-  { id: 'fruit-tart', name: 'Fresh Fruit Tart', description: 'Seasonal fruits on vanilla pastry cream', pricePerPerson: 565, category: 'desserts' },
-  { id: 'cheesecake', name: 'New York Cheesecake', description: 'Classic cheesecake with berry compote', pricePerPerson: 640, category: 'desserts' },
+  { id: 'ice-cream', name: 'Ice Cream', description: 'Assorted flavors - vanilla, chocolate, and kulfi', pricePerPerson: 60, category: 'desserts' },
+  { id: 'gulab-jamun', name: 'Gulab Jamun', description: 'Soft milk dumplings soaked in rose-flavored syrup', pricePerPerson: 45, category: 'desserts' },
+  { id: 'halwa', name: 'Halwa', description: 'Traditional sweet made with semolina, ghee and sugar', pricePerPerson: 50, category: 'desserts' },
 
   // Beverages
-  { id: 'coffee-service', name: 'Coffee Service', description: 'Freshly brewed coffee and tea selection', pricePerPerson: 270, category: 'beverages', minimumOrder: 10 },
-  { id: 'soft-drinks', name: 'Soft Drinks', description: 'Assorted sodas and juices', pricePerPerson: 215, category: 'beverages' },
-  { id: 'wine-selection', name: 'Wine Selection', description: 'House red and white wine', pricePerPerson: 930, category: 'beverages', minimumOrder: 21 },
-  { id: 'sparkling-water', name: 'Sparkling Water', description: 'Premium sparkling water with lemon', pricePerPerson: 175, category: 'beverages' }
+  { id: 'chaas', name: 'Chaas (Buttermilk)', description: 'Refreshing spiced buttermilk with mint and cumin', pricePerPerson: 25, category: 'beverages' },
+  { id: 'fruit-shots', name: 'Fresh Fruit Shots', description: 'Seasonal fruit juices - mango, orange, sweet lime', pricePerPerson: 40, category: 'beverages' },
+  { id: 'cold-drinks', name: 'Cold Drinks', description: 'Assorted soft drinks and sodas', pricePerPerson: 35, category: 'beverages' },
+  { id: 'masala-soda', name: 'Masala Soda', description: 'Refreshing soda with Indian spices and lemon', pricePerPerson: 30, category: 'beverages' }
 ]
 
 function App() {

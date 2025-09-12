@@ -323,6 +323,8 @@ function App() {
   const handleCustomerDetailsChange = (field: keyof CustomerDetails, value: string) => {
     setCustomerDetails(prev => ({ ...prev, [field]: value }))
   }
+
+  const isCustomerFormValid = () => {
     const isBasicInfoValid = customerDetails.name.trim() !== '' &&
            customerDetails.phone.trim() !== '' &&
            customerDetails.address.trim() !== '' &&

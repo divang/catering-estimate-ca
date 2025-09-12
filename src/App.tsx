@@ -88,7 +88,14 @@ function App() {
       }
       return [...current, { ...item, quantity: 1 }]
     })
-    toast.success(`Added ${item.name}`)
+    
+    if (item.minimumOrder && partySize > 0 && partySize < item.minimumOrder) {
+      toast.success(`Added ${item.name}`, {
+        description: `Note: This item requires minimum ${item.minimumOrder} guests`
+      })
+    } else {
+      toast.success(`Added ${item.name}`)
+    }
   }
 
   const updateQuantity = (itemId: string, change: number) => {
@@ -214,8 +221,15 @@ function App() {
                                   {item.description}
                                 </CardDescription>
                                 {item.minimumOrder && (
-                                  <p className="text-xs text-muted-foreground">
+                                  <p className={`text-xs ${
+                                    partySize > 0 && partySize < item.minimumOrder 
+                                      ? 'text-destructive' 
+                                      : 'text-muted-foreground'
+                                  }`}>
                                     Minimum order: {item.minimumOrder} people
+                                    {partySize > 0 && partySize < item.minimumOrder && (
+                                      <span className="ml-1">(Not met)</span>
+                                    )}
                                   </p>
                                 )}
                               </CardHeader>
@@ -248,7 +262,7 @@ function App() {
                                       onClick={() => addItem(item)}
                                       variant="secondary"
                                       size="sm"
-                                      disabled={!partySize || (item.minimumOrder && partySize < item.minimumOrder)}
+                                      disabled={item.minimumOrder && partySize > 0 && partySize < item.minimumOrder}
                                     >
                                       <Plus size={16} className="mr-1" />
                                       Add Item
@@ -287,27 +301,33 @@ function App() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {partySize === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">
-                    Enter your party size to begin
-                  </p>
-                ) : selectedItems.length === 0 ? (
+                {selectedItems.length === 0 ? (
                   <p className="text-muted-foreground text-center py-8">
                     Add menu items to see your estimate
                   </p>
                 ) : (
                   <div className="space-y-4">
+                    {partySize === 0 && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                        <p className="text-sm text-amber-800">
+                          <strong>Set party size</strong> to calculate total cost
+                        </p>
+                      </div>
+                    )}
+                    
                     <div className="space-y-3">
                       {selectedItems.map((item) => (
                         <div key={item.id} className="flex justify-between items-start text-sm">
                           <div className="flex-1">
                             <p className="font-medium">{item.name}</p>
                             <p className="text-muted-foreground">
-                              ${item.pricePerPerson.toFixed(2)} × {partySize} guests × {item.quantity}
+                              ${item.pricePerPerson.toFixed(2)} × {partySize || '?'} guests × {item.quantity}
                             </p>
                           </div>
                           <div className="text-right ml-2">
-                            <p className="font-medium">${calculateItemTotal(item).toFixed(2)}</p>
+                            <p className="font-medium">
+                              {partySize > 0 ? `$${calculateItemTotal(item).toFixed(2)}` : 'Set party size'}
+                            </p>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -326,18 +346,27 @@ function App() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-lg font-bold">
                         <span>Total Estimate:</span>
-                        <span className="text-primary">${totalCost.toFixed(2)}</span>
+                        <span className="text-primary">
+                          {partySize > 0 ? `$${totalCost.toFixed(2)}` : 'Set party size'}
+                        </span>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        ${(totalCost / partySize).toFixed(2)} per person
-                      </p>
+                      {partySize > 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          ${(totalCost / partySize).toFixed(2)} per person
+                        </p>
+                      )}
                     </div>
                     
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button className="w-full" disabled={!isValidOrder}>
                           <Download size={16} className="mr-2" />
-                          Generate Detailed Quote
+                          {!isValidOrder && partySize === 0 
+                            ? 'Set Party Size for Quote'
+                            : !isValidOrder && selectedItems.length === 0
+                            ? 'Add Items for Quote'
+                            : 'Generate Detailed Quote'
+                          }
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl">

@@ -40,6 +40,7 @@ interface UserRegistration {
   phone: string
   email: string
   address: string
+  password: string
   isRegistered: boolean
 }
 
@@ -137,6 +138,7 @@ function App() {
     phone: '',
     email: '',
     address: '',
+    password: '',
     isRegistered: false
   })
   const [activeCategory, setActiveCategory] = useState('appetizers')
@@ -145,6 +147,8 @@ function App() {
   const [showAdminPanel, setShowAdminPanel] = useState(false)
   const [showRegistrationForm, setShowRegistrationForm] = useState(false)
   const [showCustomerOrders, setShowCustomerOrders] = useState(false)
+  const [showCustomerLogin, setShowCustomerLogin] = useState(false)
+  const [isNewRegistration, setIsNewRegistration] = useState(true)
   const [adminCredentials, setAdminCredentials] = useState({ email: '', password: '' })
   const [customerDetails, setCustomerDetails] = useState<CustomerDetails>({
     name: '',
@@ -159,10 +163,16 @@ function App() {
     phone: '',
     email: '',
     address: '',
+    password: '',
     isRegistered: false
+  })
+  const [loginData, setLoginData] = useState({
+    phone: '',
+    password: ''
   })
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
   const [isSubmittingRegistration, setIsSubmittingRegistration] = useState(false)
+  const [isSubmittingLogin, setIsSubmittingLogin] = useState(false)
 
   // Check admin session on load and populate customer details from registration
   useEffect(() => {
@@ -259,22 +269,36 @@ function App() {
   const isRegistrationFormValid = () => {
     return registrationData.name.trim() !== '' &&
            registrationData.phone.trim() !== '' &&
+           registrationData.password.trim() !== '' &&
            registrationData.address.trim() !== ''
   }
 
   const handleUserRegistration = async () => {
     if (!isRegistrationFormValid()) {
-      toast.error("Please fill all required fields")
+      toast.error("Please fill all required fields including password")
       return
     }
 
-    setIsSubmittingRegistration(true)
-    
+    // Check if phone number already exists
     try {
+      const existingUsers = await spark.kv.get<UserRegistration[]>("all-users") || []
+      const phoneExists = existingUsers.some(user => user.phone === registrationData.phone)
+      
+      if (phoneExists) {
+        toast.error("Phone number already registered. Please login instead.")
+        return
+      }
+
+      setIsSubmittingRegistration(true)
+      
       const registeredUser = {
         ...registrationData,
         isRegistered: true
       }
+      
+      // Save to user list
+      const updatedUsers = [...existingUsers, registeredUser]
+      await spark.kv.set("all-users", updatedUsers)
       
       setUserRegistration(registeredUser)
       
@@ -302,12 +326,55 @@ function App() {
     }
   }
 
+  const handleCustomerLogin = async () => {
+    if (!loginData.phone.trim() || !loginData.password.trim()) {
+      toast.error("Please enter both phone number and password")
+      return
+    }
+
+    setIsSubmittingLogin(true)
+    
+    try {
+      const existingUsers = await spark.kv.get<UserRegistration[]>("all-users") || []
+      const user = existingUsers.find(u => u.phone === loginData.phone && u.password === loginData.password)
+      
+      if (user) {
+        setUserRegistration(user)
+        
+        // Pre-populate customer details
+        setCustomerDetails(prev => ({
+          ...prev,
+          name: user.name,
+          phone: user.phone,
+          email: user.email,
+          address: user.address
+        }))
+        
+        setShowCustomerLogin(false)
+        setLoginData({ phone: '', password: '' })
+        
+        toast.success("Login successful!", {
+          description: `Welcome back, ${user.name}`
+        })
+      } else {
+        toast.error("Invalid phone number or password")
+      }
+      
+    } catch (error) {
+      toast.error("Login failed. Please try again.")
+      console.error("Login error:", error)
+    } finally {
+      setIsSubmittingLogin(false)
+    }
+  }
+
   const handleLogout = () => {
     setUserRegistration({
       name: '',
       phone: '',
       email: '',
       address: '',
+      password: '',
       isRegistered: false
     })
     setCustomerDetails({
@@ -515,16 +582,32 @@ function App() {
                 </div>
               </div>
             ) : (
-              <Button 
-                variant="outline" 
-                onClick={() => setShowRegistrationForm(true)}
-                className="flex items-center gap-2 text-xs sm:text-sm"
-                size="sm"
-              >
-                <User size={16} />
-                Register / Login
-              </Button>
-            )}
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsNewRegistration(false)
+                    setShowCustomerLogin(true)
+                  }}
+                  className="flex items-center gap-2 text-xs sm:text-sm"
+                  size="sm"
+                >
+                  <User size={16} />
+                  Login
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsNewRegistration(true)
+                    setShowRegistrationForm(true)
+                  }}
+                  className="flex items-center gap-2 text-xs sm:text-sm"
+                  size="sm"
+                >
+                  <User size={16} />
+                  Register
+                </Button>
+              </div>
             <Button 
               variant="outline" 
               onClick={() => setShowAdminLogin(true)}
@@ -820,7 +903,8 @@ function App() {
                           disabled={!isValidOrder}
                           onClick={() => {
                             if (!userRegistration.isRegistered && isValidOrder) {
-                              setShowRegistrationForm(true)
+                              setIsNewRegistration(false)
+                              setShowCustomerLogin(true)
                               return
                             }
                           }}
@@ -831,7 +915,7 @@ function App() {
                             : !isValidOrder && selectedItems.length === 0
                             ? 'Add Items to Continue'
                             : !userRegistration.isRegistered
-                            ? 'Register & Place Order'
+                            ? 'Login to Place Order'
                             : 'Place Order'
                           }
                         </Button>
@@ -1243,6 +1327,18 @@ function App() {
                   required
                 />
               </div>
+              <div>
+                <Label htmlFor="reg-password">Password *</Label>
+                <Input
+                  id="reg-password"
+                  type="password"
+                  value={registrationData.password}
+                  onChange={(e) => handleRegistrationChange('password', e.target.value)}
+                  placeholder="Create a secure password"
+                  className="mt-1"
+                  required
+                />
+              </div>
               <div className="flex gap-3 pt-4">
                 <Button 
                   variant="outline" 
@@ -1272,8 +1368,103 @@ function App() {
               </div>
               <div className="bg-muted rounded-lg p-3">
                 <p className="text-sm text-muted-foreground">
-                  <strong>Why register?</strong> Your information will be saved for future orders, 
-                  making the booking process faster and easier.
+                  <strong>Why register?</strong> Create an account to save your information for future orders. 
+                  Use your phone number and password to login next time.
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  <strong>Already have an account?</strong>{" "}
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto text-primary"
+                    onClick={() => {
+                      setShowRegistrationForm(false)
+                      setIsNewRegistration(false)
+                      setShowCustomerLogin(true)
+                    }}
+                  >
+                    Login here
+                  </Button>
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Customer Login Dialog */}
+        <Dialog open={showCustomerLogin} onOpenChange={setShowCustomerLogin}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <User size={20} />
+                Login to Your Account
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="login-phone">Phone Number *</Label>
+                <Input
+                  id="login-phone"
+                  type="tel"
+                  value={loginData.phone}
+                  onChange={(e) => setLoginData(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Enter your registered mobile number"
+                  className="mt-1"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="login-password">Password *</Label>
+                <Input
+                  id="login-password"
+                  type="password"
+                  value={loginData.password}
+                  onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="Enter your password"
+                  className="mt-1"
+                  required
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowCustomerLogin(false)}
+                  className="flex-1"
+                  disabled={isSubmittingLogin}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleCustomerLogin}
+                  className="flex-1"
+                  disabled={!loginData.phone.trim() || !loginData.password.trim() || isSubmittingLogin}
+                >
+                  {isSubmittingLogin ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                      Logging in...
+                    </>
+                  ) : (
+                    <>
+                      <User size={16} className="mr-2" />
+                      Login
+                    </>
+                  )}
+                </Button>
+              </div>
+              <div className="bg-muted rounded-lg p-3">
+                <p className="text-sm text-muted-foreground">
+                  <strong>Don't have an account?</strong>{" "}
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto text-primary"
+                    onClick={() => {
+                      setShowCustomerLogin(false)
+                      setIsNewRegistration(true)
+                      setShowRegistrationForm(true)
+                    }}
+                  >
+                    Register here
+                  </Button>
                 </p>
               </div>
             </div>

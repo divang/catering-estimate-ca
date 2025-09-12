@@ -473,12 +473,12 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-6xl">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl">
         <header className="text-center mb-8 sm:mb-12">
           <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2 sm:mb-4">
             Rasoi Express
           </h1>
-          <p className="text-sm sm:text-xl text-muted-foreground max-w-2xl mx-auto px-2">
+          <p className="text-base sm:text-xl text-muted-foreground max-w-3xl mx-auto px-2">
             Your trusted partner for authentic home-style Indian catering. Plan your perfect event with our easy-to-use 
             catering calculator and get instant quotes for delicious homestyle meals.
           </p>
@@ -623,10 +623,10 @@ function App() {
                       <TabsTrigger 
                         key={category.id} 
                         value={category.id} 
-                        className="text-xs sm:text-sm px-1 sm:px-2 py-2 min-h-[44px] flex-col sm:flex-row items-center justify-center gap-1 bg-transparent data-[state=active]:bg-transparent hover:bg-transparent border-none"
+                        className="text-sm px-2 sm:px-3 py-3 min-h-[50px] flex-col items-center justify-center gap-1 bg-transparent data-[state=active]:bg-transparent hover:bg-transparent border-none"
                       >
-                        <span className="text-sm sm:inline">{category.icon}</span>
-                        <span className="truncate leading-tight text-center">{category.label}</span>
+                        <span className="text-base">{category.icon}</span>
+                        <span className="truncate leading-tight text-center text-xs sm:text-sm">{category.label}</span>
                       </TabsTrigger>
                     ))}
                   </TabsList>
@@ -646,14 +646,14 @@ function App() {
                               }`}
                             >
                               <CardHeader className="pb-3">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex items-center gap-2">
+                                <div className="flex justify-between items-start gap-2">
+                                  <div className="flex items-center gap-2 min-w-0 flex-1">
                                     <div className="w-3 h-3 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
                                       <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                                     </div>
-                                    <CardTitle className="text-lg">{item.name}</CardTitle>
+                                    <CardTitle className="text-base sm:text-lg truncate">{item.name}</CardTitle>
                                   </div>
-                                  <Badge variant="outline" className="font-mono">
+                                  <Badge variant="outline" className="font-mono text-xs sm:text-sm whitespace-nowrap">
                                     ₹{item.pricePerPerson.toFixed(0)}/person
                                   </Badge>
                                 </div>
@@ -674,7 +674,7 @@ function App() {
                                 )}
                               </CardHeader>
                               <CardContent className="pt-0">
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between gap-2">
                                   {isSelected ? (
                                     <div className="flex items-center gap-2">
                                       <Button
@@ -703,14 +703,15 @@ function App() {
                                       variant="secondary"
                                       size="sm"
                                       disabled={item.minimumOrder && partySize > 0 && partySize < item.minimumOrder}
+                                      className="text-xs sm:text-sm px-2 sm:px-3"
                                     >
-                                      <Plus size={16} className="mr-1" />
+                                      <Plus size={14} className="mr-1" />
                                       Add Item
                                     </Button>
                                   )}
                                   
                                   {partySize > 0 && isSelected && (
-                                    <div className="text-right">
+                                    <div className="text-right flex-shrink-0">
                                       <p className="text-sm font-medium">
                                         ₹{calculateItemTotal(selectedItem).toFixed(0)}
                                       </p>
@@ -813,7 +814,7 @@ function App() {
                     <Dialog open={showOrderForm} onOpenChange={setShowOrderForm}>
                       <DialogTrigger asChild>
                         <Button 
-                          className="w-full" 
+                          className="w-full text-sm sm:text-base" 
                           disabled={!isValidOrder}
                           onClick={() => {
                             if (!userRegistration.isRegistered && isValidOrder) {
@@ -1078,7 +1079,7 @@ function App() {
                     {/* View Previous Quote Dialog */}
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="outline" className="w-full" disabled={!isValidOrder}>
+                        <Button variant="outline" className="w-full text-sm sm:text-base" disabled={!isValidOrder}>
                           <Download size={16} className="mr-2" />
                           View Quote Details
                         </Button>

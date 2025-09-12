@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Users, Plus, Minus, Receipt, Download, MapPin, Phone, User } from '@phosphor-icons/react'
+import { Users, Plus, Minus, Receipt, Download, MapPin, Phone, User, Trash } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 interface FoodItem {
@@ -134,6 +134,13 @@ function App() {
   const removeItem = (itemId: string) => {
     setSelectedItems((current) => current.filter(item => item.id !== itemId))
     toast.success("Item removed")
+  }
+
+  const resetMenu = () => {
+    setSelectedItems([])
+    toast.success("Menu cleared", {
+      description: "All items have been removed from your order"
+    })
   }
 
   const calculateTotal = () => {
@@ -342,10 +349,23 @@ function App() {
           <div className="space-y-6">
             <Card className="sticky top-6">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Receipt size={20} />
-                  Order Summary
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Receipt size={20} />
+                    Order Summary
+                  </CardTitle>
+                  {selectedItems.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={resetMenu}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash size={16} className="mr-1" />
+                      Clear All
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {selectedItems.length === 0 ? (

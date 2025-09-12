@@ -9,8 +9,10 @@
 .spark-initial-sha
 .spark-workbench-id
 AZURE_DEPLOYMENT_GUIDE.md
+DEPLOYMENT_READY.md
 DEPLOY_TO_AZURE.md
 PRD.md
+README_DEPLOYMENT.md
 azure-deploy-check.sh
 index.html
 package.json

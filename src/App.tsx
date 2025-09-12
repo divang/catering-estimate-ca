@@ -82,8 +82,8 @@ const BENGALURU_AREAS = [
 ]
 
 const FOOD_CATEGORIES = [
-  { id: 'appetizers', label: 'Appetizers', icon: '🍤' },
-  { id: 'mains', label: 'Main Courses', icon: '🍖' },
+  { id: 'appetizers', label: 'Appetizers', icon: '🥟' },
+  { id: 'mains', label: 'Main Courses', icon: '🍛' },
   { id: 'sides', label: 'Side Dishes', icon: '🥗' },
   { id: 'desserts', label: 'Desserts', icon: '🍰' },
   { id: 'beverages', label: 'Beverages', icon: '🥤' }

@@ -60,8 +60,8 @@ interface AdminAuth {
 }
 
 // Admin credentials
-const ADMIN_EMAIL = "admin@catering.com"
-const ADMIN_PASSWORD = "catering123"
+const ADMIN_EMAIL = "9241797239"
+const ADMIN_PASSWORD = "Test!@#123"
 const SESSION_DURATION = 8 * 60 * 60 * 1000 // 8 hours
 
 const PARTY_TIME_SLOTS = [
@@ -1231,13 +1231,13 @@ function App() {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="admin-email">Email</Label>
+                <Label htmlFor="admin-email">Phone Number</Label>
                 <Input
                   id="admin-email"
-                  type="email"
+                  type="text"
                   value={adminCredentials.email}
                   onChange={(e) => setAdminCredentials(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="Enter admin email"
+                  placeholder="Enter admin phone number"
                   className="mt-1"
                 />
               </div>

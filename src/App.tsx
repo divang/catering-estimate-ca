@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Users, Plus, Minus, Receipt, Download } from '@phosphor-icons/react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Users, Plus, Minus, Receipt, Download, MapPin } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 interface FoodItem {
@@ -24,6 +25,16 @@ interface SelectedItem extends FoodItem {
   quantity: number
 }
 
+const BENGALURU_AREAS = [
+  'Begur',
+  'Bommanahalli', 
+  'Arekere',
+  'Hulimavu',
+  'Ashay Nagar',
+  'Electronic City',
+  'Bannerghatta Road'
+]
+
 const FOOD_CATEGORIES = [
   { id: 'appetizers', label: 'Appetizers', icon: '🍤' },
   { id: 'mains', label: 'Main Courses', icon: '🍖' },
@@ -34,39 +45,40 @@ const FOOD_CATEGORIES = [
 
 const MENU_ITEMS: FoodItem[] = [
   // Appetizers
-  { id: 'bruschetta', name: 'Bruschetta Platter', description: 'Fresh tomatoes, basil, and mozzarella on toasted bread', pricePerPerson: 4.50, category: 'appetizers' },
-  { id: 'shrimp-cocktail', name: 'Shrimp Cocktail', description: 'Jumbo shrimp with cocktail sauce', pricePerPerson: 8.75, category: 'appetizers' },
-  { id: 'cheese-board', name: 'Artisan Cheese Board', description: 'Selection of fine cheeses with crackers and fruits', pricePerPerson: 6.25, category: 'appetizers' },
-  { id: 'stuffed-mushrooms', name: 'Stuffed Mushrooms', description: 'Button mushrooms stuffed with herbs and breadcrumbs', pricePerPerson: 5.50, category: 'appetizers' },
+  { id: 'bruschetta', name: 'Bruschetta Platter', description: 'Fresh tomatoes, basil, and mozzarella on toasted bread', pricePerPerson: 350, category: 'appetizers' },
+  { id: 'shrimp-cocktail', name: 'Shrimp Cocktail', description: 'Jumbo shrimp with cocktail sauce', pricePerPerson: 680, category: 'appetizers' },
+  { id: 'cheese-board', name: 'Artisan Cheese Board', description: 'Selection of fine cheeses with crackers and fruits', pricePerPerson: 485, category: 'appetizers' },
+  { id: 'stuffed-mushrooms', name: 'Stuffed Mushrooms', description: 'Button mushrooms stuffed with herbs and breadcrumbs', pricePerPerson: 425, category: 'appetizers' },
 
   // Mains
-  { id: 'grilled-chicken', name: 'Grilled Chicken Breast', description: 'Herb-marinated chicken with lemon pepper seasoning', pricePerPerson: 18.00, category: 'mains' },
-  { id: 'beef-tenderloin', name: 'Beef Tenderloin', description: 'Premium cut beef with red wine reduction', pricePerPerson: 32.00, category: 'mains' },
-  { id: 'salmon-fillet', name: 'Atlantic Salmon', description: 'Fresh salmon with dill and citrus glaze', pricePerPerson: 24.50, category: 'mains' },
-  { id: 'vegetarian-pasta', name: 'Vegetarian Pasta Primavera', description: 'Seasonal vegetables with penne pasta', pricePerPerson: 14.75, category: 'mains' },
+  { id: 'grilled-chicken', name: 'Grilled Chicken Breast', description: 'Herb-marinated chicken with lemon pepper seasoning', pricePerPerson: 1400, category: 'mains' },
+  { id: 'beef-tenderloin', name: 'Beef Tenderloin', description: 'Premium cut beef with red wine reduction', pricePerPerson: 2500, category: 'mains' },
+  { id: 'salmon-fillet', name: 'Atlantic Salmon', description: 'Fresh salmon with dill and citrus glaze', pricePerPerson: 1900, category: 'mains' },
+  { id: 'vegetarian-pasta', name: 'Vegetarian Pasta Primavera', description: 'Seasonal vegetables with penne pasta', pricePerPerson: 1150, category: 'mains' },
 
   // Sides
-  { id: 'roasted-vegetables', name: 'Roasted Seasonal Vegetables', description: 'Chef\'s selection of fresh vegetables', pricePerPerson: 7.25, category: 'sides' },
-  { id: 'garlic-mashed-potatoes', name: 'Garlic Mashed Potatoes', description: 'Creamy potatoes with roasted garlic', pricePerPerson: 5.75, category: 'sides' },
-  { id: 'wild-rice-pilaf', name: 'Wild Rice Pilaf', description: 'Aromatic rice with herbs and almonds', pricePerPerson: 6.50, category: 'sides' },
-  { id: 'caesar-salad', name: 'Caesar Salad', description: 'Romaine lettuce with house-made dressing', pricePerPerson: 8.00, category: 'sides' },
+  { id: 'roasted-vegetables', name: 'Roasted Seasonal Vegetables', description: 'Chef\'s selection of fresh vegetables', pricePerPerson: 565, category: 'sides' },
+  { id: 'garlic-mashed-potatoes', name: 'Garlic Mashed Potatoes', description: 'Creamy potatoes with roasted garlic', pricePerPerson: 445, category: 'sides' },
+  { id: 'wild-rice-pilaf', name: 'Wild Rice Pilaf', description: 'Aromatic rice with herbs and almonds', pricePerPerson: 505, category: 'sides' },
+  { id: 'caesar-salad', name: 'Caesar Salad', description: 'Romaine lettuce with house-made dressing', pricePerPerson: 620, category: 'sides' },
 
   // Desserts
-  { id: 'chocolate-mousse', name: 'Chocolate Mousse', description: 'Rich Belgian chocolate mousse with berries', pricePerPerson: 9.50, category: 'desserts' },
-  { id: 'tiramisu', name: 'Classic Tiramisu', description: 'Traditional Italian dessert with coffee and mascarpone', pricePerPerson: 8.75, category: 'desserts' },
-  { id: 'fruit-tart', name: 'Fresh Fruit Tart', description: 'Seasonal fruits on vanilla pastry cream', pricePerPerson: 7.25, category: 'desserts' },
-  { id: 'cheesecake', name: 'New York Cheesecake', description: 'Classic cheesecake with berry compote', pricePerPerson: 8.25, category: 'desserts' },
+  { id: 'chocolate-mousse', name: 'Chocolate Mousse', description: 'Rich Belgian chocolate mousse with berries', pricePerPerson: 740, category: 'desserts' },
+  { id: 'tiramisu', name: 'Classic Tiramisu', description: 'Traditional Italian dessert with coffee and mascarpone', pricePerPerson: 680, category: 'desserts' },
+  { id: 'fruit-tart', name: 'Fresh Fruit Tart', description: 'Seasonal fruits on vanilla pastry cream', pricePerPerson: 565, category: 'desserts' },
+  { id: 'cheesecake', name: 'New York Cheesecake', description: 'Classic cheesecake with berry compote', pricePerPerson: 640, category: 'desserts' },
 
   // Beverages
-  { id: 'coffee-service', name: 'Coffee Service', description: 'Freshly brewed coffee and tea selection', pricePerPerson: 3.50, category: 'beverages', minimumOrder: 10 },
-  { id: 'soft-drinks', name: 'Soft Drinks', description: 'Assorted sodas and juices', pricePerPerson: 2.75, category: 'beverages' },
-  { id: 'wine-selection', name: 'Wine Selection', description: 'House red and white wine', pricePerPerson: 12.00, category: 'beverages', minimumOrder: 21 },
-  { id: 'sparkling-water', name: 'Sparkling Water', description: 'Premium sparkling water with lemon', pricePerPerson: 2.25, category: 'beverages' }
+  { id: 'coffee-service', name: 'Coffee Service', description: 'Freshly brewed coffee and tea selection', pricePerPerson: 270, category: 'beverages', minimumOrder: 10 },
+  { id: 'soft-drinks', name: 'Soft Drinks', description: 'Assorted sodas and juices', pricePerPerson: 215, category: 'beverages' },
+  { id: 'wine-selection', name: 'Wine Selection', description: 'House red and white wine', pricePerPerson: 930, category: 'beverages', minimumOrder: 21 },
+  { id: 'sparkling-water', name: 'Sparkling Water', description: 'Premium sparkling water with lemon', pricePerPerson: 175, category: 'beverages' }
 ]
 
 function App() {
   const [partySize, setPartySize] = useKV<number>("party-size", 0)
   const [selectedItems, setSelectedItems] = useKV<SelectedItem[]>("selected-items", [])
+  const [selectedArea, setSelectedArea] = useKV<string>("selected-area", "")
   const [activeCategory, setActiveCategory] = useState('appetizers')
 
   const handlePartySizeChange = (value: string) => {
@@ -102,11 +114,15 @@ function App() {
     setSelectedItems((current) => {
       return current.map(item => {
         if (item.id === itemId) {
-          const newQuantity = Math.max(0, item.quantity + change)
-          return newQuantity > 0 ? { ...item, quantity: newQuantity } : item
+          const newQuantity = item.quantity + change
+          if (newQuantity <= 0) {
+            toast.success("Item removed")
+            return null // Mark for removal
+          }
+          return { ...item, quantity: newQuantity }
         }
         return item
-      }).filter(item => item.quantity > 0)
+      }).filter((item): item is SelectedItem => item !== null)
     })
   }
 
@@ -148,32 +164,58 @@ function App() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users size={24} />
-                  Party Size
+                  Party Size & Location
                 </CardTitle>
                 <CardDescription>
-                  How many guests will be attending your event?
+                  How many guests will be attending and where is your event?
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-4">
-                  <Label htmlFor="party-size" className="font-medium">
-                    Number of guests:
-                  </Label>
-                  <Input
-                    id="party-size"
-                    type="number"
-                    min="1"
-                    max="1000"
-                    value={partySize || ""}
-                    onChange={(e) => handlePartySizeChange(e.target.value)}
-                    placeholder="Enter guest count"
-                    className="w-32"
-                  />
-                  {partySize > 0 && (
-                    <Badge variant="secondary" className="ml-2">
-                      {partySize} {partySize === 1 ? 'guest' : 'guests'}
-                    </Badge>
-                  )}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Label htmlFor="party-size" className="font-medium">
+                      Number of guests:
+                    </Label>
+                    <Input
+                      id="party-size"
+                      type="number"
+                      min="1"
+                      max="1000"
+                      value={partySize || ""}
+                      onChange={(e) => handlePartySizeChange(e.target.value)}
+                      placeholder="Enter guest count"
+                      className="w-32"
+                    />
+                    {partySize > 0 && (
+                      <Badge variant="secondary" className="ml-2">
+                        {partySize} {partySize === 1 ? 'guest' : 'guests'}
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <Label htmlFor="area-select" className="font-medium">
+                      <MapPin size={16} className="inline mr-1" />
+                      Delivery Area:
+                    </Label>
+                    <Select value={selectedArea} onValueChange={setSelectedArea}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select area in Bengaluru" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BENGALURU_AREAS.map((area) => (
+                          <SelectItem key={area} value={area}>
+                            {area}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedArea && (
+                      <Badge variant="outline" className="ml-2">
+                        Bengaluru - {selectedArea}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -214,7 +256,7 @@ function App() {
                                 <div className="flex justify-between items-start">
                                   <CardTitle className="text-lg">{item.name}</CardTitle>
                                   <Badge variant="outline" className="font-mono">
-                                    ${item.pricePerPerson.toFixed(2)}/person
+                                    ₹{item.pricePerPerson.toFixed(0)}/person
                                   </Badge>
                                 </div>
                                 <CardDescription className="text-sm">
@@ -272,7 +314,7 @@ function App() {
                                   {partySize > 0 && isSelected && (
                                     <div className="text-right">
                                       <p className="text-sm font-medium">
-                                        ${calculateItemTotal(selectedItem).toFixed(2)}
+                                        ₹{calculateItemTotal(selectedItem).toFixed(0)}
                                       </p>
                                       <p className="text-xs text-muted-foreground">
                                         total cost
@@ -321,12 +363,12 @@ function App() {
                           <div className="flex-1">
                             <p className="font-medium">{item.name}</p>
                             <p className="text-muted-foreground">
-                              ${item.pricePerPerson.toFixed(2)} × {partySize || '?'} guests × {item.quantity}
+                              ₹{item.pricePerPerson.toFixed(0)} × {partySize || '?'} guests × {item.quantity}
                             </p>
                           </div>
                           <div className="text-right ml-2">
                             <p className="font-medium">
-                              {partySize > 0 ? `$${calculateItemTotal(item).toFixed(2)}` : 'Set party size'}
+                              {partySize > 0 ? `₹${calculateItemTotal(item).toFixed(0)}` : 'Set party size'}
                             </p>
                             <Button
                               variant="ghost"
@@ -347,12 +389,12 @@ function App() {
                       <div className="flex justify-between text-lg font-bold">
                         <span>Total Estimate:</span>
                         <span className="text-primary">
-                          {partySize > 0 ? `$${totalCost.toFixed(2)}` : 'Set party size'}
+                          {partySize > 0 ? `₹${totalCost.toFixed(0)}` : 'Set party size'}
                         </span>
                       </div>
                       {partySize > 0 && (
                         <p className="text-sm text-muted-foreground">
-                          ${(totalCost / partySize).toFixed(2)} per person
+                          ₹{(totalCost / partySize).toFixed(0)} per person
                         </p>
                       )}
                     </div>
@@ -376,9 +418,16 @@ function App() {
                         <div className="space-y-6">
                           <div>
                             <h3 className="font-semibold mb-2">Event Information</h3>
-                            <p className="text-muted-foreground">
-                              Party Size: <span className="font-medium text-foreground">{partySize} guests</span>
-                            </p>
+                            <div className="space-y-1">
+                              <p className="text-muted-foreground">
+                                Party Size: <span className="font-medium text-foreground">{partySize} guests</span>
+                              </p>
+                              {selectedArea && (
+                                <p className="text-muted-foreground">
+                                  Delivery Area: <span className="font-medium text-foreground">Bengaluru - {selectedArea}</span>
+                                </p>
+                              )}
+                            </div>
                           </div>
                           
                           <div>
@@ -394,8 +443,8 @@ function App() {
                                     {item.description}
                                   </p>
                                   <div className="flex justify-between text-sm">
-                                    <span>${item.pricePerPerson.toFixed(2)}/person × {partySize} guests × {item.quantity}</span>
-                                    <span className="font-medium">${calculateItemTotal(item).toFixed(2)}</span>
+                                    <span>₹{item.pricePerPerson.toFixed(0)}/person × {partySize} guests × {item.quantity}</span>
+                                    <span className="font-medium">₹{calculateItemTotal(item).toFixed(0)}</span>
                                   </div>
                                 </div>
                               ))}
@@ -405,10 +454,10 @@ function App() {
                           <div className="border-t pt-4">
                             <div className="flex justify-between text-xl font-bold">
                               <span>Total Estimate:</span>
-                              <span className="text-primary">${totalCost.toFixed(2)}</span>
+                              <span className="text-primary">₹{totalCost.toFixed(0)}</span>
                             </div>
                             <p className="text-muted-foreground text-right">
-                              ${(totalCost / partySize).toFixed(2)} per person
+                              ₹{(totalCost / partySize).toFixed(0)} per person
                             </p>
                           </div>
                           

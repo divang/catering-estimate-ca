@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { Users, Plus, Minus, Receipt, Download, MapPin, Phone, User, Trash, Calendar, Check, ClipboardText, Lock, Shield, Eye, Clock } from '@phosphor-icons/react'
+import { Users, Plus, Minus, Receipt, Download, MapPin, Phone, User, Trash, Calendar, Check, ClipboardText, Lock, Shield, Eye, Clock, History } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 interface FoodItem {
@@ -144,6 +144,7 @@ function App() {
   const [showAdminLogin, setShowAdminLogin] = useState(false)
   const [showAdminPanel, setShowAdminPanel] = useState(false)
   const [showRegistrationForm, setShowRegistrationForm] = useState(false)
+  const [showCustomerOrders, setShowCustomerOrders] = useState(false)
   const [adminCredentials, setAdminCredentials] = useState({ email: '', password: '' })
   const [customerDetails, setCustomerDetails] = useState<CustomerDetails>({
     name: '',
@@ -378,6 +379,29 @@ function App() {
     toast.success(`Order ${newStatus}`)
   }
 
+  const cancelCustomerOrder = (orderId: string) => {
+    setOrders((current) => 
+      current.map(order => 
+        order.id === orderId 
+          ? { ...order, status: 'cancelled' }
+          : order
+      )
+    )
+    toast.success("Order cancelled successfully")
+  }
+
+  const getCustomerOrders = () => {
+    if (!userRegistration.isRegistered) return []
+    
+    return orders
+      .filter(order => order.customer.phone === userRegistration.phone)
+      .sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime())
+  }
+
+  const getSortedOrders = () => {
+    return [...orders].sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime())
+  }
+
   const generateOrderId = () => {
     const timestamp = Date.now()
     const random = Math.random().toString(36).substr(2, 5)
@@ -459,7 +483,7 @@ function App() {
             catering calculator and get instant quotes for delicious homestyle meals.
           </p>
           
-          <div className="mt-6 flex gap-4 justify-center">
+          <div className="mt-6 flex gap-4 justify-center flex-wrap">
             {userRegistration.isRegistered ? (
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 px-4 py-2 bg-accent/10 rounded-lg">
@@ -468,6 +492,15 @@ function App() {
                     Welcome, {userRegistration.name}
                   </span>
                 </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowCustomerOrders(true)}
+                  className="flex items-center gap-2"
+                >
+                  <History size={14} />
+                  My Orders
+                </Button>
                 <Button 
                   variant="outline" 
                   size="sm"
@@ -1310,7 +1343,7 @@ function App() {
                   </div>
 
                   <div className="space-y-4">
-                    {orders.map((order) => (
+                    {getSortedOrders().map((order) => (
                       <Card key={order.id} className="border">
                         <CardContent className="p-6">
                           <div className="space-y-4">
@@ -1416,6 +1449,123 @@ function App() {
                                 </Button>
                               )}
                             </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Customer Orders Dialog */}
+        <Dialog open={showCustomerOrders} onOpenChange={setShowCustomerOrders}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <History size={20} />
+                My Orders ({getCustomerOrders().length})
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 max-h-[calc(90vh-120px)] overflow-y-auto">
+              {getCustomerOrders().length === 0 ? (
+                <div className="text-center py-12">
+                  <Receipt size={48} className="mx-auto text-muted-foreground mb-4" />
+                  <p className="text-lg font-medium">No Orders Found</p>
+                  <p className="text-muted-foreground">Your placed orders will appear here.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <p className="text-muted-foreground">Your order history, latest first</p>
+                    <div className="flex gap-2">
+                      <Badge variant="secondary">{getCustomerOrders().filter(o => o.status === 'pending').length} Pending</Badge>
+                      <Badge variant="default">{getCustomerOrders().filter(o => o.status === 'confirmed').length} Confirmed</Badge>
+                      <Badge variant="destructive">{getCustomerOrders().filter(o => o.status === 'cancelled').length} Cancelled</Badge>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {getCustomerOrders().map((order) => (
+                      <Card key={order.id} className="border">
+                        <CardContent className="p-6">
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-semibold text-lg">Order #{order.id.split('-')[1]}</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  Ordered: {new Date(order.orderDate).toLocaleDateString()} at {new Date(order.orderDate).toLocaleTimeString()}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <Badge 
+                                  variant={order.status === 'pending' ? 'secondary' : order.status === 'confirmed' ? 'default' : 'destructive'}
+                                  className="mb-2"
+                                >
+                                  {order.status.toUpperCase()}
+                                </Badge>
+                                <p className="text-xl font-bold">₹{order.totalAmount.toFixed(0)}</p>
+                                <p className="text-sm text-muted-foreground">₹{(order.totalAmount / order.partySize).toFixed(0)}/person</p>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground">Event Details</p>
+                                <p className="font-medium">{new Date(order.customer.eventDate).toLocaleDateString()}</p>
+                                <p className="text-sm">{PARTY_TIME_SLOTS.find(slot => slot.value === order.customer.eventTime)?.label || order.customer.eventTime}</p>
+                                <p className="text-sm">{order.partySize} guests</p>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground">Delivery Location</p>
+                                <p className="font-medium">Bengaluru - {order.selectedArea}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground">Order Status</p>
+                                <p className="font-medium capitalize">{order.status}</p>
+                                {order.status === 'pending' && (
+                                  <p className="text-xs text-muted-foreground mt-1">Awaiting confirmation</p>
+                                )}
+                              </div>
+                            </div>
+
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground mb-3">Ordered Items ({order.items.length})</p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-32 overflow-y-auto">
+                                {order.items.map((item) => (
+                                  <div key={item.id} className="flex justify-between items-center p-3 bg-muted/30 rounded border">
+                                    <div>
+                                      <p className="font-medium">{item.name}</p>
+                                      <p className="text-sm text-muted-foreground">
+                                        ₹{item.pricePerPerson} × {order.partySize} × {item.quantity}
+                                      </p>
+                                    </div>
+                                    <p className="font-medium">₹{(item.pricePerPerson * order.partySize * item.quantity).toFixed(0)}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {order.status !== 'cancelled' && (
+                              <div className="flex gap-3 pt-4 border-t">
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => cancelCustomerOrder(order.id)}
+                                  className="flex-1"
+                                  disabled={order.status === 'confirmed' && new Date(order.customer.eventDate) <= new Date(Date.now() + 24 * 60 * 60 * 1000)}
+                                >
+                                  Cancel Order
+                                </Button>
+                                {order.status === 'confirmed' && new Date(order.customer.eventDate) <= new Date(Date.now() + 24 * 60 * 60 * 1000) && (
+                                  <p className="text-xs text-muted-foreground flex items-center">
+                                    <Clock size={14} className="mr-1" />
+                                    Cannot cancel - event is within 24 hours
+                                  </p>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>

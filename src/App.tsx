@@ -608,6 +608,7 @@ function App() {
                   Register
                 </Button>
               </div>
+            )}
             <Button 
               variant="outline" 
               onClick={() => setShowAdminLogin(true)}

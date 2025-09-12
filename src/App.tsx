@@ -623,10 +623,12 @@ function App() {
                       <TabsTrigger 
                         key={category.id} 
                         value={category.id} 
-                        className="text-sm px-2 sm:px-3 py-3 min-h-[50px] flex-col items-center justify-center gap-1 bg-transparent data-[state=active]:bg-transparent hover:bg-transparent border-none"
+                        className="text-sm px-2 sm:px-3 py-3 min-h-[60px] sm:min-h-[50px] flex-col items-center justify-center gap-1 bg-transparent data-[state=active]:bg-transparent hover:bg-transparent border-none"
                       >
                         <span className="text-base">{category.icon}</span>
-                        <span className="truncate leading-tight text-center text-xs sm:text-sm">{category.label}</span>
+                        <span className="truncate leading-tight text-center text-xs sm:text-sm font-medium">
+                          {category.label}
+                        </span>
                       </TabsTrigger>
                     ))}
                   </TabsList>

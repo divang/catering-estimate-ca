@@ -473,67 +473,73 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <header className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-6xl">
+        <header className="text-center mb-8 sm:mb-12">
+          <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2 sm:mb-4">
             Rasoi Express
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-xl text-muted-foreground max-w-2xl mx-auto px-2">
             Your trusted partner for authentic home-style Indian catering. Plan your perfect event with our easy-to-use 
             catering calculator and get instant quotes for delicious homestyle meals.
           </p>
           
-          <div className="mt-6 flex gap-4 justify-center flex-wrap">
+          <div className="mt-4 sm:mt-6 flex gap-2 sm:gap-4 justify-center flex-wrap">
             {userRegistration.isRegistered ? (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 bg-accent/10 rounded-lg">
+              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-accent/10 rounded-lg">
                   <User size={16} className="text-accent" />
-                  <span className="text-sm text-accent font-medium">
+                  <span className="text-xs sm:text-sm text-accent font-medium truncate">
                     Welcome, {userRegistration.name}
                   </span>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowCustomerOrders(true)}
-                  className="flex items-center gap-2"
-                >
-                  <History size={14} />
-                  My Orders
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleLogout}
-                  className="flex items-center gap-2"
-                >
-                  <User size={14} />
-                  Logout
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowCustomerOrders(true)}
+                    className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                  >
+                    <History size={12} sm:size={14} />
+                    <span className="hidden sm:inline">My Orders</span>
+                    <span className="sm:hidden">Orders</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleLogout}
+                    className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                  >
+                    <User size={12} sm:size={14} />
+                    Logout
+                  </Button>
+                </div>
               </div>
             ) : (
               <Button 
                 variant="outline" 
                 onClick={() => setShowRegistrationForm(true)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 text-xs sm:text-sm"
+                size="sm"
               >
-                <User size={16} />
+                <User size={14} sm:size={16} />
                 Register / Login
               </Button>
             )}
             <Button 
               variant="outline" 
               onClick={() => setShowAdminLogin(true)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-xs sm:text-sm"
+              size="sm"
             >
-              <Shield size={16} />
-              Admin Access
+              <Shield size={14} sm:size={16} />
+              <span className="hidden sm:inline">Admin Access</span>
+              <span className="sm:hidden">Admin</span>
             </Button>
           </div>
         </header>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
+        <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="lg:col-span-2 space-y-6 lg:space-y-8">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -546,47 +552,56 @@ function App() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                     <Label htmlFor="party-size" className="font-medium">
                       Number of guests:
                     </Label>
-                    <Input
-                      id="party-size"
-                      type="number"
-                      min="1"
-                      max="1000"
-                      value={partySize || ""}
-                      onChange={(e) => handlePartySizeChange(e.target.value)}
-                      placeholder="Enter guest count"
-                      className="w-32"
-                    />
-                    {partySize > 0 && (
-                      <Badge variant="secondary" className="ml-2">
-                        {partySize} {partySize === 1 ? 'guest' : 'guests'}
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="party-size"
+                        type="number"
+                        min="1"
+                        max="1000"
+                        value={partySize || ""}
+                        onChange={(e) => handlePartySizeChange(e.target.value)}
+                        placeholder="Enter guest count"
+                        className="w-32"
+                      />
+                      {partySize > 0 && (
+                        <Badge variant="secondary">
+                          {partySize} {partySize === 1 ? 'guest' : 'guests'}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                     <Label htmlFor="area-select" className="font-medium">
                       <MapPin size={16} className="inline mr-1" />
                       Delivery Area:
                     </Label>
-                    <Select value={selectedArea} onValueChange={setSelectedArea}>
-                      <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Select area in Bengaluru" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BENGALURU_AREAS.map((area) => (
-                          <SelectItem key={area} value={area}>
-                            {area}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2 flex-1">
+                      <Select value={selectedArea} onValueChange={setSelectedArea}>
+                        <SelectTrigger className="w-full sm:w-48">
+                          <SelectValue placeholder="Select area in Bengaluru" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {BENGALURU_AREAS.map((area) => (
+                            <SelectItem key={area} value={area}>
+                              {area}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedArea && (
+                        <Badge variant="outline" className="hidden sm:block">
+                          Bengaluru - {selectedArea}
+                        </Badge>
+                      )}
+                    </div>
                     {selectedArea && (
-                      <Badge variant="outline" className="ml-2">
-                        Bengaluru - {selectedArea}
+                      <Badge variant="outline" className="sm:hidden self-start">
+                        {selectedArea}
                       </Badge>
                     )}
                   </div>
@@ -603,18 +618,18 @@ function App() {
               </CardHeader>
               <CardContent>
                 <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-                  <TabsList className="grid w-full grid-cols-5">
+                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1">
                     {FOOD_CATEGORIES.map((category) => (
-                      <TabsTrigger key={category.id} value={category.id}>
+                      <TabsTrigger key={category.id} value={category.id} className="text-xs sm:text-sm px-2 py-2">
                         <span className="hidden sm:inline">{category.icon}</span>
-                        <span className="sm:ml-1">{category.label}</span>
+                        <span className="sm:ml-1 truncate">{category.label}</span>
                       </TabsTrigger>
                     ))}
                   </TabsList>
 
                   {FOOD_CATEGORIES.map((category) => (
-                    <TabsContent key={category.id} value={category.id} className="mt-6">
-                      <div className="grid gap-4 sm:grid-cols-2">
+                    <TabsContent key={category.id} value={category.id} className="mt-4 sm:mt-6">
+                      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
                         {filteredItems.map((item) => {
                           const selectedItem = selectedItems.find(s => s.id === item.id)
                           const isSelected = !!selectedItem
@@ -708,8 +723,8 @@ function App() {
             </Card>
           </div>
 
-          <div className="space-y-6">
-            <Card className="sticky top-6">
+          <div className="space-y-4 lg:space-y-6">
+            <Card className="lg:sticky lg:top-6">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">

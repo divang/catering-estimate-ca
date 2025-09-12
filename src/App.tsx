@@ -618,12 +618,12 @@ function App() {
               </CardHeader>
               <CardContent>
                 <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 mb-20 p-1">
+                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 mb-20 p-1 bg-transparent">
                     {FOOD_CATEGORIES.map((category) => (
                       <TabsTrigger 
                         key={category.id} 
                         value={category.id} 
-                        className="text-xs sm:text-sm px-1 sm:px-2 py-2 min-h-[44px] flex-col sm:flex-row items-center justify-center gap-1"
+                        className="text-xs sm:text-sm px-1 sm:px-2 py-2 min-h-[44px] flex-col sm:flex-row items-center justify-center gap-1 bg-transparent data-[state=active]:bg-transparent hover:bg-transparent border-none"
                       >
                         <span className="text-sm sm:inline">{category.icon}</span>
                         <span className="truncate leading-tight text-center">{category.label}</span>

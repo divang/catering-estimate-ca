@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Users, Plus, Minus, Receipt, Download, MapPin, Phone, User, Trash } from '@phosphor-icons/react'
+import { Textarea } from '@/components/ui/textarea'
+import { Users, Plus, Minus, Receipt, Download, MapPin, Phone, User, Trash, Calendar, Check, ClipboardText } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 interface FoodItem {
@@ -23,6 +24,25 @@ interface FoodItem {
 
 interface SelectedItem extends FoodItem {
   quantity: number
+}
+
+interface CustomerDetails {
+  name: string
+  phone: string
+  email: string
+  address: string
+  eventDate: string
+}
+
+interface Order {
+  id: string
+  orderDate: string
+  customer: CustomerDetails
+  partySize: number
+  selectedArea: string
+  items: SelectedItem[]
+  totalAmount: number
+  status: 'pending' | 'confirmed' | 'cancelled'
 }
 
 const BENGALURU_AREAS = [
@@ -84,7 +104,17 @@ function App() {
   const [partySize, setPartySize] = useKV<number>("party-size", 0)
   const [selectedItems, setSelectedItems] = useKV<SelectedItem[]>("selected-items", [])
   const [selectedArea, setSelectedArea] = useKV<string>("selected-area", "")
+  const [orders, setOrders] = useKV<Order[]>("customer-orders", [])
   const [activeCategory, setActiveCategory] = useState('appetizers')
+  const [showOrderForm, setShowOrderForm] = useState(false)
+  const [customerDetails, setCustomerDetails] = useState<CustomerDetails>({
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    eventDate: ''
+  })
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
 
   const handlePartySizeChange = (value: string) => {
     const size = parseInt(value) || 0
@@ -151,6 +181,72 @@ function App() {
 
   const calculateItemTotal = (item: SelectedItem) => {
     return item.pricePerPerson * partySize * item.quantity
+  }
+
+  const handleCustomerDetailsChange = (field: keyof CustomerDetails, value: string) => {
+    setCustomerDetails(prev => ({ ...prev, [field]: value }))
+  }
+
+  const isCustomerFormValid = () => {
+    return customerDetails.name.trim() !== '' &&
+           customerDetails.phone.trim() !== '' &&
+           customerDetails.address.trim() !== '' &&
+           customerDetails.eventDate !== '' &&
+           selectedArea !== ''
+  }
+
+  const generateOrderId = () => {
+    const timestamp = Date.now()
+    const random = Math.random().toString(36).substr(2, 5)
+    return `ORDER-${timestamp}-${random}`.toUpperCase()
+  }
+
+  const submitOrder = async () => {
+    if (!isCustomerFormValid() || !isValidOrder) {
+      toast.error("Please fill all required fields")
+      return
+    }
+
+    setIsSubmittingOrder(true)
+    
+    try {
+      const newOrder: Order = {
+        id: generateOrderId(),
+        orderDate: new Date().toISOString(),
+        customer: { ...customerDetails },
+        partySize,
+        selectedArea,
+        items: [...selectedItems],
+        totalAmount: totalCost,
+        status: 'pending'
+      }
+
+      // Store order in database
+      setOrders((current) => [newOrder, ...current])
+      
+      // Clear form and cart
+      setSelectedItems([])
+      setPartySize(0)
+      setSelectedArea("")
+      setCustomerDetails({
+        name: '',
+        phone: '',
+        email: '',
+        address: '',
+        eventDate: ''
+      })
+      setShowOrderForm(false)
+
+      toast.success("Order submitted successfully!", {
+        description: `Order ID: ${newOrder.id}. We'll contact you soon!`
+      })
+
+    } catch (error) {
+      toast.error("Failed to submit order. Please try again.")
+      console.error("Order submission error:", error)
+    } finally {
+      setIsSubmittingOrder(false)
+    }
   }
 
   const filteredItems = MENU_ITEMS.filter(item => item.category === activeCategory)
@@ -424,16 +520,200 @@ function App() {
                       )}
                     </div>
                     
-                    <Dialog>
+                    <Dialog open={showOrderForm} onOpenChange={setShowOrderForm}>
                       <DialogTrigger asChild>
                         <Button className="w-full" disabled={!isValidOrder}>
-                          <Download size={16} className="mr-2" />
+                          <ClipboardText size={16} className="mr-2" />
                           {!isValidOrder && partySize === 0 
-                            ? 'Set Party Size for Quote'
+                            ? 'Set Party Size to Continue'
                             : !isValidOrder && selectedItems.length === 0
-                            ? 'Add Items for Quote'
-                            : 'Generate Detailed Quote'
+                            ? 'Add Items to Continue'
+                            : 'Place Order'
                           }
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Complete Your Order</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-6">
+                          {/* Customer Information Form */}
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="text-lg">Customer Information</CardTitle>
+                              <CardDescription>Please provide your details for order confirmation</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <Label htmlFor="customer-name" className="text-sm font-medium">
+                                    Full Name *
+                                  </Label>
+                                  <Input
+                                    id="customer-name"
+                                    type="text"
+                                    value={customerDetails.name}
+                                    onChange={(e) => handleCustomerDetailsChange('name', e.target.value)}
+                                    placeholder="Enter your full name"
+                                    className="mt-1"
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="customer-phone" className="text-sm font-medium">
+                                    Phone Number *
+                                  </Label>
+                                  <Input
+                                    id="customer-phone"
+                                    type="tel"
+                                    value={customerDetails.phone}
+                                    onChange={(e) => handleCustomerDetailsChange('phone', e.target.value)}
+                                    placeholder="Enter 10-digit mobile number"
+                                    className="mt-1"
+                                    required
+                                  />
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="customer-email" className="text-sm font-medium">
+                                  Email Address (Optional)
+                                </Label>
+                                <Input
+                                  id="customer-email"
+                                  type="email"
+                                  value={customerDetails.email}
+                                  onChange={(e) => handleCustomerDetailsChange('email', e.target.value)}
+                                  placeholder="Enter your email address"
+                                  className="mt-1"
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="customer-address" className="text-sm font-medium">
+                                  Complete Address *
+                                </Label>
+                                <Textarea
+                                  id="customer-address"
+                                  value={customerDetails.address}
+                                  onChange={(e) => handleCustomerDetailsChange('address', e.target.value)}
+                                  placeholder="Enter complete delivery address with landmark"
+                                  className="mt-1 min-h-[80px]"
+                                  required
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="event-date" className="text-sm font-medium">
+                                  Event Date *
+                                </Label>
+                                <Input
+                                  id="event-date"
+                                  type="date"
+                                  value={customerDetails.eventDate}
+                                  onChange={(e) => handleCustomerDetailsChange('eventDate', e.target.value)}
+                                  className="mt-1"
+                                  min={new Date().toISOString().split('T')[0]}
+                                  required
+                                />
+                              </div>
+                            </CardContent>
+                          </Card>
+
+                          {/* Order Summary */}
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="text-lg">Order Summary</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <p className="text-muted-foreground">Party Size:</p>
+                                  <p className="font-medium">{partySize} guests</p>
+                                </div>
+                                {selectedArea && (
+                                  <div>
+                                    <p className="text-muted-foreground">Delivery Area:</p>
+                                    <p className="font-medium">Bengaluru - {selectedArea}</p>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div>
+                                <h4 className="font-semibold mb-3">Selected Items ({selectedItems.length})</h4>
+                                <div className="space-y-2 max-h-40 overflow-y-auto">
+                                  {selectedItems.map((item) => (
+                                    <div key={item.id} className="flex justify-between items-center text-sm p-2 bg-muted/30 rounded">
+                                      <div>
+                                        <p className="font-medium">{item.name}</p>
+                                        <p className="text-muted-foreground">
+                                          ₹{item.pricePerPerson} × {partySize} × {item.quantity}
+                                        </p>
+                                      </div>
+                                      <p className="font-medium">₹{calculateItemTotal(item).toFixed(0)}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              
+                              <Separator />
+                              
+                              <div className="flex justify-between text-lg font-bold">
+                                <span>Total Amount:</span>
+                                <span className="text-primary">₹{totalCost.toFixed(0)}</span>
+                              </div>
+                              <p className="text-sm text-muted-foreground text-right">
+                                ₹{(totalCost / partySize).toFixed(0)} per person
+                              </p>
+                            </CardContent>
+                          </Card>
+
+                          {/* Action Buttons */}
+                          <div className="flex gap-4">
+                            <Button
+                              variant="outline"
+                              onClick={() => setShowOrderForm(false)}
+                              className="flex-1"
+                              disabled={isSubmittingOrder}
+                            >
+                              Back to Menu
+                            </Button>
+                            <Button
+                              onClick={submitOrder}
+                              className="flex-1"
+                              disabled={!isCustomerFormValid() || isSubmittingOrder}
+                            >
+                              {isSubmittingOrder ? (
+                                <>
+                                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                                  Submitting...
+                                </>
+                              ) : (
+                                <>
+                                  <Check size={16} className="mr-2" />
+                                  Confirm Order
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                          
+                          <div className="bg-muted rounded-lg p-4">
+                            <p className="text-sm text-muted-foreground">
+                              <strong>Note:</strong> After placing your order, our team will contact you within 2-4 hours to confirm details, 
+                              finalize pricing, and discuss payment options. This is an estimate - final pricing may vary based on 
+                              specific requirements and delivery logistics.
+                            </p>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    {/* View Previous Quote Dialog */}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full" disabled={!isValidOrder}>
+                          <Download size={16} className="mr-2" />
+                          View Quote Details
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl">
@@ -534,6 +814,76 @@ function App() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Admin Orders View */}
+            {orders.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Receipt size={20} />
+                    Recent Orders ({orders.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {orders.slice(0, 5).map((order) => (
+                      <Card key={order.id} className="border">
+                        <CardContent className="p-4">
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="font-medium text-sm">{order.customer.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {order.id} • {new Date(order.orderDate).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <Badge 
+                                variant={order.status === 'pending' ? 'secondary' : order.status === 'confirmed' ? 'default' : 'destructive'}
+                              >
+                                {order.status}
+                              </Badge>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <p className="text-muted-foreground">Phone:</p>
+                                <p className="font-mono">{order.customer.phone}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Event Date:</p>
+                                <p>{new Date(order.customer.eventDate).toLocaleDateString()}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Guests:</p>
+                                <p>{order.partySize} people</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Amount:</p>
+                                <p className="font-medium">₹{order.totalAmount.toFixed(0)}</p>
+                              </div>
+                            </div>
+                            <div className="mt-2">
+                              <p className="text-xs text-muted-foreground">Address:</p>
+                              <p className="text-xs">{order.customer.address}</p>
+                            </div>
+                            <div className="mt-2">
+                              <p className="text-xs text-muted-foreground">
+                                Items: {order.items.map(item => `${item.name} (${item.quantity})`).join(', ')}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                    
+                    {orders.length > 5 && (
+                      <p className="text-xs text-muted-foreground text-center">
+                        Showing 5 most recent orders. Total: {orders.length} orders
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

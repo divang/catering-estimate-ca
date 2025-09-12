@@ -476,7 +476,7 @@ function App() {
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl">
         <header className="text-center mb-8 sm:mb-12">
           <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2 sm:mb-4">
-            Rasoi Express
+            Spice-e-Zaika
           </h1>
           <p className="text-base sm:text-xl text-muted-foreground max-w-3xl mx-auto px-2">
             Your trusted partner for authentic home-style Indian catering. Plan your perfect event with our easy-to-use 
@@ -1088,7 +1088,7 @@ function App() {
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl">
                         <DialogHeader>
-                          <DialogTitle>Rasoi Express - Catering Quote Details</DialogTitle>
+                          <DialogTitle>Spice-e-Zaika - Catering Quote Details</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-6">
                           <div>

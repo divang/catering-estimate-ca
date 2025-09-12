@@ -9,7 +9,9 @@
         "build": "tsc -b --noCheck && vite build",
         "lint": "eslint .",
         "optimize": "vite optimize",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "build:production": "NODE_ENV=production npm run build",
+        "deploy:azure": "npm run build:production"
     },
     "dependencies": {
         "@github/spark": "^0.39.0",

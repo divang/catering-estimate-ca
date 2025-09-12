@@ -618,7 +618,7 @@ function App() {
               </CardHeader>
               <CardContent>
                 <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 mb-12 p-1">
+                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 mb-20 p-1">
                     {FOOD_CATEGORIES.map((category) => (
                       <TabsTrigger 
                         key={category.id} 

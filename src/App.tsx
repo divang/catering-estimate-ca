@@ -499,7 +499,7 @@ function App() {
                     onClick={() => setShowCustomerOrders(true)}
                     className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
                   >
-                    <History size={12} sm:size={14} />
+                    <History size={14} />
                     <span className="hidden sm:inline">My Orders</span>
                     <span className="sm:hidden">Orders</span>
                   </Button>
@@ -509,7 +509,7 @@ function App() {
                     onClick={handleLogout}
                     className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
                   >
-                    <User size={12} sm:size={14} />
+                    <User size={14} />
                     Logout
                   </Button>
                 </div>
@@ -521,7 +521,7 @@ function App() {
                 className="flex items-center gap-2 text-xs sm:text-sm"
                 size="sm"
               >
-                <User size={14} sm:size={16} />
+                <User size={16} />
                 Register / Login
               </Button>
             )}
@@ -531,7 +531,7 @@ function App() {
               className="flex items-center gap-2 text-xs sm:text-sm"
               size="sm"
             >
-              <Shield size={14} sm:size={16} />
+              <Shield size={16} />
               <span className="hidden sm:inline">Admin Access</span>
               <span className="sm:hidden">Admin</span>
             </Button>

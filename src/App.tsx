@@ -632,7 +632,7 @@ function App() {
                   </TabsList>
 
                   {FOOD_CATEGORIES.map((category) => (
-                    <TabsContent key={category.id} value={category.id} className="mt-6 p-6 bg-muted/20 rounded-lg">
+                    <TabsContent key={category.id} value={category.id} className="mt-12">
                       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                         {filteredItems.map((item) => {
                           const selectedItem = selectedItems.find(s => s.id === item.id)
@@ -647,7 +647,12 @@ function App() {
                             >
                               <CardHeader className="pb-3">
                                 <div className="flex justify-between items-start">
-                                  <CardTitle className="text-lg">{item.name}</CardTitle>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                      <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                    </div>
+                                    <CardTitle className="text-lg">{item.name}</CardTitle>
+                                  </div>
                                   <Badge variant="outline" className="font-mono">
                                     ₹{item.pricePerPerson.toFixed(0)}/person
                                   </Badge>

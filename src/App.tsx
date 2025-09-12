@@ -61,6 +61,8 @@ const PARTY_TIME_SLOTS = [
   { id: 'afternoon', label: 'Afternoon (1:00 PM - 4:00 PM)', value: '13:00-16:00' },
   { id: 'evening', label: 'Evening (6:00 PM - 9:00 PM)', value: '18:00-21:00' },
   { id: 'dinner', label: 'Dinner (7:00 PM - 10:00 PM)', value: '19:00-22:00' },
+]
+
 const BENGALURU_AREAS = [
   'Begur',
   'Bommanahalli', 

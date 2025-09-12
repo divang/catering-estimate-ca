@@ -628,8 +628,8 @@ function App() {
                   </TabsList>
 
                   {FOOD_CATEGORIES.map((category) => (
-                    <TabsContent key={category.id} value={category.id} className="mt-6 sm:mt-8">
-                      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+                    <TabsContent key={category.id} value={category.id} className="mt-8">
+                      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                         {filteredItems.map((item) => {
                           const selectedItem = selectedItems.find(s => s.id === item.id)
                           const isSelected = !!selectedItem
@@ -637,7 +637,7 @@ function App() {
                           return (
                             <Card 
                               key={item.id} 
-                              className={`cursor-pointer transition-all hover:shadow-md ${
+                              className={`cursor-pointer transition-all hover:shadow-md bg-card ${
                                 isSelected ? 'ring-2 ring-accent shadow-md' : ''
                               }`}
                             >

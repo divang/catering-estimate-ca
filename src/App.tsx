@@ -618,7 +618,7 @@ function App() {
               </CardHeader>
               <CardContent>
                 <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1">
+                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 mb-8">
                     {FOOD_CATEGORIES.map((category) => (
                       <TabsTrigger key={category.id} value={category.id} className="text-xs sm:text-sm px-2 py-2">
                         <span className="hidden sm:inline">{category.icon}</span>
@@ -628,7 +628,7 @@ function App() {
                   </TabsList>
 
                   {FOOD_CATEGORIES.map((category) => (
-                    <TabsContent key={category.id} value={category.id} className="mt-8 p-6 bg-muted/20 rounded-lg">
+                    <TabsContent key={category.id} value={category.id} className="mt-0 p-6 bg-muted/20 rounded-lg">
                       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                         {filteredItems.map((item) => {
                           const selectedItem = selectedItems.find(s => s.id === item.id)

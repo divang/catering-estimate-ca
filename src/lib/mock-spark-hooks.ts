@@ -1,43 +1,6 @@
 import { useState, useCallback } from 'react'
 
-// Mock implementation of useKV for production builds
-export function useKV<T>(key: string, defaultValue: T): [T, (value: T | ((current: T) => T)) => void, () => void] {
-  // Use localStorage as the storage mechanism
-  const getStoredValue = useCallback(() => {
-    try {
-      const item = localStorage.getItem(`spice-e-zaika-${key}`)
-      return item ? JSON.parse(item) : defaultValue
-    } catch (error) {
-      console.warn(`Failed to parse stored value for key "${key}":`, error)
-      return defaultValue
-    }
-  }, [key, defaultValue])
-
-  const [storedValue, setStoredValue] = useState<T>(getStoredValue)
-
-  const setValue = useCallback((value: T | ((current: T) => T)) => {
-    try {
-      const valueToStore = value instanceof Function ? value(storedValue) : value
-      setStoredValue(valueToStore)
-      localStorage.setItem(`spice-e-zaika-${key}`, JSON.stringify(valueToStore))
-    } catch (error) {
-      console.error(`Failed to store value for key "${key}":`, error)
-    }
-  }, [key, storedValue])
-
-  const deleteValue = useCallback(() => {
-    try {
-      localStorage.removeItem(`spice-e-zaika-${key}`)
-      setStoredValue(defaultValue)
-    } catch (error) {
-      console.error(`Failed to delete value for key "${key}":`, error)
-    }
-  }, [key, defaultValue])
-
-  return [storedValue, setValue, deleteValue]
-}
-
-// Mock spark global object for production
+// Type declarations for the Spark global object
 declare global {
   interface Window {
     spark: {
@@ -46,8 +9,8 @@ declare global {
       user: () => Promise<UserInfo>
       kv: {
         keys: () => Promise<string[]>
-        get: <T>(key: string) => Promise<T | undefined>
-        set: <T>(key: string, value: T) => Promise<void>
+        get: (key: string) => Promise<string | null>
+        set: (key: string, value: string) => Promise<void>
         delete: (key: string) => Promise<void>
       }
     }
@@ -98,37 +61,96 @@ if (typeof window !== 'undefined' && !window.spark) {
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i)
           if (key?.startsWith('spice-e-zaika-')) {
-            keys.push(key.replace('spice-e-zaika-', ''))
+            keys.push(key.slice('spice-e-zaika-'.length))
           }
         }
         return keys
       },
       
-      get: async <T>(key: string): Promise<T | undefined> => {
+      get: async (key: string) => {
         try {
-          const item = localStorage.getItem(`spice-e-zaika-${key}`)
-          return item ? JSON.parse(item) : undefined
+          return localStorage.getItem(`spice-e-zaika-${key}`)
         } catch (error) {
-          console.error(`Failed to get value for key "${key}":`, error)
-          return undefined
+          console.warn('Error getting value from localStorage:', error)
+          return null
         }
       },
       
-      set: async <T>(key: string, value: T): Promise<void> => {
+      set: async (key: string, value: string) => {
         try {
-          localStorage.setItem(`spice-e-zaika-${key}`, JSON.stringify(value))
+          localStorage.setItem(`spice-e-zaika-${key}`, value)
         } catch (error) {
-          console.error(`Failed to set value for key "${key}":`, error)
+          console.warn('Error setting value in localStorage:', error)
         }
       },
       
-      delete: async (key: string): Promise<void> => {
+      delete: async (key: string) => {
         try {
           localStorage.removeItem(`spice-e-zaika-${key}`)
         } catch (error) {
-          console.error(`Failed to delete value for key "${key}":`, error)
+          console.warn('Error deleting value from localStorage:', error)
         }
       }
     }
   }
 }
+
+// Mock useKV hook that uses localStorage as backing store
+export function useKV<T = string>(key: string, defaultValue: T): [T, (value: T) => void] {
+  // Use localStorage as the storage mechanism
+  const getStoredValue = useCallback(() => {
+    try {
+      const item = localStorage.getItem(`spice-e-zaika-${key}`)
+      return item ? JSON.parse(item) : defaultValue
+    } catch (error) {
+      console.warn('Error reading from localStorage, using default value:', error)
+      return defaultValue
+    }
+  }, [key, defaultValue])
+
+  const [storedValue, setStoredValue] = useState<T>(getStoredValue)
+
+  const setValue = useCallback((value: T) => {
+    try {
+      setStoredValue(value)
+      localStorage.setItem(`spice-e-zaika-${key}`, JSON.stringify(value))
+    } catch (error) {
+      console.warn('Error saving to localStorage:', error)
+    }
+  }, [key])
+
+  return [storedValue, setValue]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

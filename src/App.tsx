@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { Users, Plus, Minus, Receipt, Download, MapPin, Phone, User, Trash, Calendar, Check, ClipboardText, Lock, Shield, Eye, Clock, History } from '@phosphor-icons/react'
+import { Users, Plus, Minus, Receipt, Download, MapPin, Phone, User, Trash, Calendar, Check, ClipboardText, Lock, Shield, Eye, Clock, ClockCounterClockwise } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 interface FoodItem {
@@ -566,7 +566,7 @@ function App() {
                     onClick={() => setShowCustomerOrders(true)}
                     className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
                   >
-                    <History size={14} />
+                    <ClockCounterClockwise size={14} />
                     <span className="hidden sm:inline">My Orders</span>
                     <span className="sm:hidden">Orders</span>
                   </Button>
@@ -1684,7 +1684,7 @@ function App() {
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <History size={20} />
+                <ClockCounterClockwise size={20} />
                 My Orders ({getCustomerOrders().length})
               </DialogTitle>
             </DialogHeader>

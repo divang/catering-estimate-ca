@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { Users, Plus, Minus, Receipt, Download, MapPin, Phone, User, Trash, Calendar, Check, ClipboardText } from '@phosphor-icons/react'
+import { Users, Plus, Minus, Receipt, Download, MapPin, Phone, User, Trash, Calendar, Check, ClipboardText, Lock, Shield, Eye, Clock } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 interface FoodItem {
@@ -32,6 +32,7 @@ interface CustomerDetails {
   email: string
   address: string
   eventDate: string
+  eventTime: string
 }
 
 interface Order {
@@ -45,6 +46,21 @@ interface Order {
   status: 'pending' | 'confirmed' | 'cancelled'
 }
 
+interface AdminAuth {
+  isLoggedIn: boolean
+  sessionExpiry?: number
+}
+
+// Admin credentials
+const ADMIN_EMAIL = "admin@catering.com"
+const ADMIN_PASSWORD = "catering123"
+const SESSION_DURATION = 8 * 60 * 60 * 1000 // 8 hours
+
+const PARTY_TIME_SLOTS = [
+  { id: 'morning', label: 'Morning (10:00 AM - 1:00 PM)', value: '10:00-13:00' },
+  { id: 'afternoon', label: 'Afternoon (1:00 PM - 4:00 PM)', value: '13:00-16:00' },
+  { id: 'evening', label: 'Evening (6:00 PM - 9:00 PM)', value: '18:00-21:00' },
+  { id: 'dinner', label: 'Dinner (7:00 PM - 10:00 PM)', value: '19:00-22:00' },
 const BENGALURU_AREAS = [
   'Begur',
   'Bommanahalli', 
@@ -105,16 +121,31 @@ function App() {
   const [selectedItems, setSelectedItems] = useKV<SelectedItem[]>("selected-items", [])
   const [selectedArea, setSelectedArea] = useKV<string>("selected-area", "")
   const [orders, setOrders] = useKV<Order[]>("customer-orders", [])
+  const [adminAuth, setAdminAuth] = useKV<AdminAuth>("admin-auth", { isLoggedIn: false })
   const [activeCategory, setActiveCategory] = useState('appetizers')
   const [showOrderForm, setShowOrderForm] = useState(false)
+  const [showAdminLogin, setShowAdminLogin] = useState(false)
+  const [showAdminPanel, setShowAdminPanel] = useState(false)
+  const [adminCredentials, setAdminCredentials] = useState({ email: '', password: '' })
   const [customerDetails, setCustomerDetails] = useState<CustomerDetails>({
     name: '',
     phone: '',
     email: '',
     address: '',
-    eventDate: ''
+    eventDate: '',
+    eventTime: ''
   })
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
+
+  // Check admin session on load
+  useEffect(() => {
+    if (adminAuth.isLoggedIn && adminAuth.sessionExpiry) {
+      if (Date.now() > adminAuth.sessionExpiry) {
+        setAdminAuth({ isLoggedIn: false })
+        toast.info("Admin session expired. Please log in again.")
+      }
+    }
+  }, [adminAuth, setAdminAuth])
 
   const handlePartySizeChange = (value: string) => {
     const size = parseInt(value) || 0
@@ -188,11 +219,57 @@ function App() {
   }
 
   const isCustomerFormValid = () => {
-    return customerDetails.name.trim() !== '' &&
+    const isBasicInfoValid = customerDetails.name.trim() !== '' &&
            customerDetails.phone.trim() !== '' &&
            customerDetails.address.trim() !== '' &&
            customerDetails.eventDate !== '' &&
+           customerDetails.eventTime !== '' &&
            selectedArea !== ''
+    
+    if (!isBasicInfoValid) return false
+    
+    // Check if event date is at least 7 days from now
+    const eventDate = new Date(customerDetails.eventDate)
+    const oneWeekFromNow = new Date()
+    oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7)
+    
+    return eventDate >= oneWeekFromNow
+  }
+
+  const getMinimumDate = () => {
+    const oneWeekFromNow = new Date()
+    oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7)
+    return oneWeekFromNow.toISOString().split('T')[0]
+  }
+
+  const handleAdminLogin = () => {
+    if (adminCredentials.email === ADMIN_EMAIL && adminCredentials.password === ADMIN_PASSWORD) {
+      const sessionExpiry = Date.now() + SESSION_DURATION
+      setAdminAuth({ isLoggedIn: true, sessionExpiry })
+      setShowAdminLogin(false)
+      setShowAdminPanel(true)
+      setAdminCredentials({ email: '', password: '' })
+      toast.success("Admin login successful")
+    } else {
+      toast.error("Invalid credentials")
+    }
+  }
+
+  const handleAdminLogout = () => {
+    setAdminAuth({ isLoggedIn: false })
+    setShowAdminPanel(false)
+    toast.success("Logged out successfully")
+  }
+
+  const updateOrderStatus = (orderId: string, newStatus: Order['status']) => {
+    setOrders((current) => 
+      current.map(order => 
+        order.id === orderId 
+          ? { ...order, status: newStatus }
+          : order
+      )
+    )
+    toast.success(`Order ${newStatus}`)
   }
 
   const generateOrderId = () => {
@@ -203,7 +280,17 @@ function App() {
 
   const submitOrder = async () => {
     if (!isCustomerFormValid() || !isValidOrder) {
-      toast.error("Please fill all required fields")
+      if (!isCustomerFormValid()) {
+        const eventDate = new Date(customerDetails.eventDate)
+        const oneWeekFromNow = new Date()
+        oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7)
+        
+        if (customerDetails.eventDate && eventDate < oneWeekFromNow) {
+          toast.error("Event date must be at least 7 days from today")
+        } else {
+          toast.error("Please fill all required fields including event time")
+        }
+      }
       return
     }
 
@@ -233,7 +320,8 @@ function App() {
         phone: '',
         email: '',
         address: '',
-        eventDate: ''
+        eventDate: '',
+        eventTime: ''
       })
       setShowOrderForm(false)
 
@@ -264,6 +352,17 @@ function App() {
             Plan your perfect event with our easy-to-use catering calculator. 
             Select your guest count and favorite dishes to get an instant quote.
           </p>
+          
+          <div className="mt-6 flex gap-4 justify-center">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAdminLogin(true)}
+              className="flex items-center gap-2"
+            >
+              <Shield size={16} />
+              Admin Access
+            </Button>
+          </div>
         </header>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -603,19 +702,42 @@ function App() {
                                 />
                               </div>
                               
-                              <div>
-                                <Label htmlFor="event-date" className="text-sm font-medium">
-                                  Event Date *
-                                </Label>
-                                <Input
-                                  id="event-date"
-                                  type="date"
-                                  value={customerDetails.eventDate}
-                                  onChange={(e) => handleCustomerDetailsChange('eventDate', e.target.value)}
-                                  className="mt-1"
-                                  min={new Date().toISOString().split('T')[0]}
-                                  required
-                                />
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <Label htmlFor="event-date" className="text-sm font-medium">
+                                    Event Date *
+                                  </Label>
+                                  <Input
+                                    id="event-date"
+                                    type="date"
+                                    value={customerDetails.eventDate}
+                                    onChange={(e) => handleCustomerDetailsChange('eventDate', e.target.value)}
+                                    className="mt-1"
+                                    min={getMinimumDate()}
+                                    required
+                                  />
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Minimum 7 days advance booking required
+                                  </p>
+                                </div>
+                                
+                                <div>
+                                  <Label htmlFor="event-time" className="text-sm font-medium">
+                                    Event Time *
+                                  </Label>
+                                  <Select value={customerDetails.eventTime} onValueChange={(value) => handleCustomerDetailsChange('eventTime', value)}>
+                                    <SelectTrigger className="mt-1">
+                                      <SelectValue placeholder="Select time slot" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {PARTY_TIME_SLOTS.map((slot) => (
+                                        <SelectItem key={slot.id} value={slot.value}>
+                                          {slot.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                               </div>
                             </CardContent>
                           </Card>
@@ -635,6 +757,20 @@ function App() {
                                   <div>
                                     <p className="text-muted-foreground">Delivery Area:</p>
                                     <p className="font-medium">Bengaluru - {selectedArea}</p>
+                                  </div>
+                                )}
+                                {customerDetails.eventDate && (
+                                  <div>
+                                    <p className="text-muted-foreground">Event Date:</p>
+                                    <p className="font-medium">{new Date(customerDetails.eventDate).toLocaleDateString()}</p>
+                                  </div>
+                                )}
+                                {customerDetails.eventTime && (
+                                  <div>
+                                    <p className="text-muted-foreground">Event Time:</p>
+                                    <p className="font-medium">
+                                      {PARTY_TIME_SLOTS.find(slot => slot.value === customerDetails.eventTime)?.label || customerDetails.eventTime}
+                                    </p>
                                   </div>
                                 )}
                               </div>
@@ -814,78 +950,215 @@ function App() {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        </div>
 
-            {/* Admin Orders View */}
-            {orders.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Receipt size={20} />
-                    Recent Orders ({orders.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {orders.slice(0, 5).map((order) => (
+        {/* Admin Login Dialog */}
+        <Dialog open={showAdminLogin} onOpenChange={setShowAdminLogin}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Lock size={20} />
+                Admin Login
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="admin-email">Email</Label>
+                <Input
+                  id="admin-email"
+                  type="email"
+                  value={adminCredentials.email}
+                  onChange={(e) => setAdminCredentials(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Enter admin email"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="admin-password">Password</Label>
+                <Input
+                  id="admin-password"
+                  type="password"
+                  value={adminCredentials.password}
+                  onChange={(e) => setAdminCredentials(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="Enter password"
+                  className="mt-1"
+                />
+              </div>
+              <div className="flex gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowAdminLogin(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleAdminLogin}
+                  className="flex-1"
+                >
+                  <Shield size={16} className="mr-2" />
+                  Login
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Admin Panel Dialog */}
+        <Dialog open={showAdminPanel} onOpenChange={setShowAdminPanel}>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden">
+            <DialogHeader>
+              <div className="flex items-center justify-between">
+                <DialogTitle className="flex items-center gap-2">
+                  <Shield size={20} />
+                  Admin Dashboard - Order Management
+                </DialogTitle>
+                <Button 
+                  variant="outline" 
+                  onClick={handleAdminLogout}
+                  className="flex items-center gap-2"
+                >
+                  <Lock size={16} />
+                  Logout
+                </Button>
+              </div>
+            </DialogHeader>
+            <div className="space-y-6 max-h-[calc(90vh-120px)] overflow-y-auto">
+              {orders.length === 0 ? (
+                <div className="text-center py-12">
+                  <Receipt size={48} className="mx-auto text-muted-foreground mb-4" />
+                  <p className="text-lg font-medium">No Orders Found</p>
+                  <p className="text-muted-foreground">Customer orders will appear here once submitted.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">All Orders ({orders.length})</h3>
+                    <div className="flex gap-2">
+                      <Badge variant="secondary">{orders.filter(o => o.status === 'pending').length} Pending</Badge>
+                      <Badge variant="default">{orders.filter(o => o.status === 'confirmed').length} Confirmed</Badge>
+                      <Badge variant="destructive">{orders.filter(o => o.status === 'cancelled').length} Cancelled</Badge>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {orders.map((order) => (
                       <Card key={order.id} className="border">
-                        <CardContent className="p-4">
-                          <div className="space-y-2">
+                        <CardContent className="p-6">
+                          <div className="space-y-4">
                             <div className="flex justify-between items-start">
                               <div>
-                                <p className="font-medium text-sm">{order.customer.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {order.id} • {new Date(order.orderDate).toLocaleDateString()}
+                                <h4 className="font-semibold text-lg">{order.customer.name}</h4>
+                                <p className="text-sm text-muted-foreground font-mono">
+                                  {order.id}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  Ordered: {new Date(order.orderDate).toLocaleDateString()} at {new Date(order.orderDate).toLocaleTimeString()}
                                 </p>
                               </div>
-                              <Badge 
-                                variant={order.status === 'pending' ? 'secondary' : order.status === 'confirmed' ? 'default' : 'destructive'}
-                              >
-                                {order.status}
-                              </Badge>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 text-xs">
-                              <div>
-                                <p className="text-muted-foreground">Phone:</p>
-                                <p className="font-mono">{order.customer.phone}</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Event Date:</p>
-                                <p>{new Date(order.customer.eventDate).toLocaleDateString()}</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Guests:</p>
-                                <p>{order.partySize} people</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Amount:</p>
-                                <p className="font-medium">₹{order.totalAmount.toFixed(0)}</p>
+                              <div className="text-right">
+                                <Badge 
+                                  variant={order.status === 'pending' ? 'secondary' : order.status === 'confirmed' ? 'default' : 'destructive'}
+                                  className="mb-2"
+                                >
+                                  {order.status.toUpperCase()}
+                                </Badge>
+                                <p className="text-xl font-bold">₹{order.totalAmount.toFixed(0)}</p>
+                                <p className="text-sm text-muted-foreground">₹{(order.totalAmount / order.partySize).toFixed(0)}/person</p>
                               </div>
                             </div>
-                            <div className="mt-2">
-                              <p className="text-xs text-muted-foreground">Address:</p>
-                              <p className="text-xs">{order.customer.address}</p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground">Contact Details</p>
+                                <p className="font-medium">{order.customer.phone}</p>
+                                {order.customer.email && <p className="text-sm">{order.customer.email}</p>}
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground">Event Details</p>
+                                <p className="font-medium">{new Date(order.customer.eventDate).toLocaleDateString()}</p>
+                                <p className="text-sm">{order.customer.eventTime}</p>
+                                <p className="text-sm">{order.partySize} guests</p>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground">Delivery</p>
+                                <p className="font-medium">Bengaluru - {order.selectedArea}</p>
+                              </div>
                             </div>
-                            <div className="mt-2">
-                              <p className="text-xs text-muted-foreground">
-                                Items: {order.items.map(item => `${item.name} (${item.quantity})`).join(', ')}
-                              </p>
+
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground mb-2">Complete Address</p>
+                              <p className="text-sm p-3 bg-muted/30 rounded border">{order.customer.address}</p>
+                            </div>
+
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground mb-3">Ordered Items ({order.items.length})</p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {order.items.map((item) => (
+                                  <div key={item.id} className="flex justify-between items-center p-3 bg-muted/30 rounded border">
+                                    <div>
+                                      <p className="font-medium">{item.name}</p>
+                                      <p className="text-sm text-muted-foreground">
+                                        ₹{item.pricePerPerson} × {order.partySize} × {item.quantity}
+                                      </p>
+                                    </div>
+                                    <p className="font-medium">₹{(item.pricePerPerson * order.partySize * item.quantity).toFixed(0)}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="flex gap-3 pt-4 border-t">
+                              {order.status === 'pending' && (
+                                <>
+                                  <Button
+                                    onClick={() => updateOrderStatus(order.id, 'confirmed')}
+                                    className="flex-1"
+                                  >
+                                    <Check size={16} className="mr-2" />
+                                    Confirm Order
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                                    className="flex-1"
+                                  >
+                                    Cancel Order
+                                  </Button>
+                                </>
+                              )}
+                              
+                              {order.status === 'confirmed' && (
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                                  className="flex-1"
+                                >
+                                  Cancel Order
+                                </Button>
+                              )}
+                              
+                              {order.status === 'cancelled' && (
+                                <Button
+                                  onClick={() => updateOrderStatus(order.id, 'pending')}
+                                  variant="outline"
+                                  className="flex-1"
+                                >
+                                  Reactivate Order
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </CardContent>
                       </Card>
                     ))}
-                    
-                    {orders.length > 5 && (
-                      <p className="text-xs text-muted-foreground text-center">
-                        Showing 5 most recent orders. Total: {orders.length} orders
-                      </p>
-                    )}
                   </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

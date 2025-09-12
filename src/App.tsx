@@ -348,11 +348,11 @@ function App() {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <header className="text-center mb-12">
           <h1 className="text-4xl font-bold text-foreground mb-4">
-            Catering Estimator
+            Rasoi Express
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Plan your perfect event with our easy-to-use catering calculator. 
-            Select your guest count and favorite dishes to get an instant quote.
+            Your trusted partner for authentic Indian catering. Plan your perfect event with our easy-to-use 
+            catering calculator and get instant quotes for delicious homestyle meals.
           </p>
           
           <div className="mt-6 flex gap-4 justify-center">
@@ -856,7 +856,7 @@ function App() {
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl">
                         <DialogHeader>
-                          <DialogTitle>Catering Estimate Details</DialogTitle>
+                          <DialogTitle>Rasoi Express - Catering Quote Details</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-6">
                           <div>

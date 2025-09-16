@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { Users, Plus, Minus, Receipt, Download, MapPin, Phone, User, Trash, Calendar, Check, ClipboardText, Lock, Shield, Eye, Clock, ClockCounterClockwise } from '@phosphor-icons/react'
+import { Users, Plus, Minus, Receipt, Download, MapPin, Phone, User, Trash, Calendar, Check, ClipboardText, Lock, Shield, Eye, Clock, ClockCounterClockwise, TrendUp } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 interface FoodItem {
@@ -173,8 +173,9 @@ function App() {
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
   const [isSubmittingRegistration, setIsSubmittingRegistration] = useState(false)
   const [isSubmittingLogin, setIsSubmittingLogin] = useState(false)
+  const [visitorCount, setVisitorCount] = useKV<number>("visitor-count", 0)
 
-  // Check admin session on load and populate customer details from registration
+  // Check admin session on load, populate customer details from registration, and increment visitor count
   useEffect(() => {
     if (adminAuth.isLoggedIn && adminAuth.sessionExpiry) {
       if (Date.now() > adminAuth.sessionExpiry) {
@@ -193,7 +194,10 @@ function App() {
         address: userRegistration.address
       }))
     }
-  }, [adminAuth, setAdminAuth, userRegistration])
+
+    // Increment visitor count on first load
+    setVisitorCount((currentCount) => currentCount + 1)
+  }, [adminAuth, setAdminAuth, userRegistration, setVisitorCount])
 
   const handlePartySizeChange = (value: string) => {
     const size = parseInt(value) || 0
@@ -549,6 +553,12 @@ function App() {
             Your trusted partner for authentic home-style Indian catering. Plan your perfect event with our easy-to-use 
             catering calculator and get instant quotes for delicious homestyle meals.
           </p>
+          
+          {/* Visitor Counter */}
+          <div className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <TrendUp size={14} className="text-accent" />
+            <span>Site Visitors: <span className="font-medium text-foreground">{visitorCount.toLocaleString()}</span></span>
+          </div>
           
           <div className="mt-4 sm:mt-6 flex gap-2 sm:gap-4 justify-center flex-wrap">
             {userRegistration.isRegistered ? (
